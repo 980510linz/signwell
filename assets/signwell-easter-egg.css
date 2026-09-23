@@ -1,0 +1,59 @@
+.sw-well-confetti{
+  position:fixed;inset:0;z-index:10040;pointer-events:none;overflow:hidden;contain:layout paint;
+}
+.sw-well-confetti-piece{
+  position:absolute;left:var(--sw-confetti-left);top:-18px;width:8px;height:14px;border-radius:3px;
+  background:var(--sw-confetti-color);box-shadow:0 2px 8px rgba(54,82,111,.08);
+  animation:swWellConfettiFall var(--sw-confetti-duration) cubic-bezier(.18,.72,.27,1) var(--sw-confetti-delay) both;
+  will-change:transform,opacity;
+}
+.sw-well-confetti-piece:nth-child(3n){width:6px;height:10px;border-radius:50%}
+.sw-well-confetti-piece:nth-child(4n){width:10px;height:5px;border-radius:999px}
+@keyframes swWellConfettiFall{
+  0%{opacity:0;transform:translate3d(0,-12px,0) rotate(0)}
+  12%{opacity:1}
+  100%{opacity:0;transform:translate3d(var(--sw-confetti-drift),105vh,0) rotate(var(--sw-confetti-rotate))}
+}
+.sw-well-egg-overlay{
+  position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:24px;
+  background:rgba(233,244,252,.15);backdrop-filter:blur(7px) saturate(112%);-webkit-backdrop-filter:blur(7px) saturate(112%);
+  opacity:0;transition:opacity .22s ease;
+}
+.sw-well-egg-overlay.is-visible{opacity:1}
+.sw-well-egg-overlay.is-leaving{opacity:0}
+.sw-well-egg-card{
+  position:relative;width:min(390px,calc(100vw - 34px));padding:31px 28px 29px;text-align:center;
+  border:1px solid rgba(255,255,255,.74);border-radius:30px;
+  background:linear-gradient(145deg,rgba(255,255,255,.84),rgba(246,251,255,.69));
+  box-shadow:0 22px 62px rgba(65,93,121,.15),inset 0 1px 0 rgba(255,255,255,.96);
+  backdrop-filter:blur(24px) saturate(138%);-webkit-backdrop-filter:blur(24px) saturate(138%);
+  transform:translateY(10px) scale(.975);transition:transform .34s cubic-bezier(.2,.8,.2,1);
+}
+.is-visible .sw-well-egg-card{transform:none}
+.sw-well-egg-mark{
+  width:54px;height:54px;margin:0 auto 15px;border-radius:17px;display:grid;place-items:center;
+  font:800 14px/1 -apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang TC",sans-serif;letter-spacing:.08em;
+  color:#466f8f;background:linear-gradient(145deg,rgba(213,238,255,.82),rgba(255,224,235,.76));
+  border:1px solid rgba(255,255,255,.82);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 8px 24px rgba(95,138,172,.12);
+}
+.sw-well-egg-kicker{margin:0 0 7px;color:#8196a8;font:750 10px/1.2 -apple-system,BlinkMacSystemFont,"PingFang TC",sans-serif;letter-spacing:.16em}
+.sw-well-egg-card h2{margin:0;color:#17212a;font:760 clamp(20px,5vw,25px)/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang TC",sans-serif;letter-spacing:-.02em}
+.sw-well-egg-close{
+  position:absolute;right:13px;top:13px;width:34px;height:34px;border:0;border-radius:50%;cursor:pointer;
+  color:#718494;background:rgba(255,255,255,.62);font:400 22px/1 -apple-system,BlinkMacSystemFont,sans-serif;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9);transition:transform .18s ease,background .18s ease;
+}
+.sw-well-egg-close:hover{transform:scale(1.06);background:rgba(255,255,255,.84)}
+body.dark .sw-well-egg-overlay{background:rgba(8,15,21,.22)}
+body.dark .sw-well-egg-card{background:linear-gradient(145deg,rgba(38,55,69,.92),rgba(20,35,47,.88));border-color:rgba(255,255,255,.12);box-shadow:0 24px 70px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.1)}
+body.dark .sw-well-egg-card h2{color:#f6fbff}
+body.dark .sw-well-egg-kicker{color:#a6bfd1}
+body.dark .sw-well-egg-close{color:#d8e6ef;background:rgba(255,255,255,.08)}
+@media (max-width:640px){
+  .sw-well-egg-overlay{padding:18px;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+  .sw-well-egg-card{width:min(360px,calc(100vw - 28px));padding:28px 22px 25px;border-radius:27px}
+}
+@media (prefers-reduced-motion:reduce){
+  .sw-well-egg-overlay,.sw-well-egg-card,.sw-well-egg-close{transition-duration:.01ms!important}
+  .sw-well-confetti-piece{animation-duration:420ms!important}
+}

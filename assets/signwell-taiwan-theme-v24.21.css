@@ -1,0 +1,19 @@
+/* SIGN WELL v24.21 · Formosa / Taiwan mode */
+:root{--tw-night:#102426;--tw-night2:#173438;--tw-jade:#5e9687;--tw-jade2:#8db9ad;--tw-sea:#8fc9dc;--tw-rain:#c7dfe6;--tw-pink:#d6a6b7;--tw-coral:#c46f61;--tw-rice:#e7d9bd;--tw-ink:#f7f1e8;--tw-muted:#c6d1cc}
+html.sw-v2421 body.dark,html.sw-v2421 body.taiwan-theme{color-scheme:dark;--sw-ink:var(--tw-ink);--sw-muted:var(--tw-muted);--sw-glass:rgba(218,238,235,.09);--sw-glass-strong:rgba(218,238,235,.13);--sw-glass-edge:rgba(231,244,240,.19);--sw-shadow:0 20px 52px rgba(0,0,0,.25),0 3px 12px rgba(0,0,0,.16);background:
+ radial-gradient(52rem 34rem at -8% -10%,rgba(94,150,135,.30),transparent 70%),
+ radial-gradient(42rem 28rem at 106% 4%,rgba(196,111,97,.16),transparent 72%),
+ radial-gradient(34rem 26rem at 70% 104%,rgba(143,201,220,.10),transparent 74%),
+ linear-gradient(150deg,#0e2022 0%,#153136 54%,#1f2b2d 100%)!important;color:var(--tw-ink)!important}
+html.sw-v2421 body.dark::before,html.sw-v2421 body.taiwan-theme::before{background:radial-gradient(32rem 22rem at 16% 30%,rgba(141,185,173,.11),transparent 74%),radial-gradient(30rem 24rem at 82% 54%,rgba(214,166,183,.08),transparent 74%)}
+html.sw-v2421 body.dark :is(.glass,.sw-glass,.hero-card,.home-hero-card,.article-card,.share-card,.newsletter-card,.about-manifesto,.about-value,.about-team-card,.article-view,.toc,.sw-trust-panel,.sw-related-card,.card,.topbar,.nav-pill,.brand-pill,.sw-brand-pill,.modal,.dialog,.panel),
+html.sw-v2421 body.taiwan-theme :is(.glass,.sw-glass,.hero-card,.home-hero-card,.article-card,.share-card,.newsletter-card,.about-manifesto,.about-value,.about-team-card,.article-view,.toc,.sw-trust-panel,.sw-related-card,.card,.topbar,.nav-pill,.brand-pill,.sw-brand-pill,.modal,.dialog,.panel){background:linear-gradient(145deg,rgba(226,241,238,.11),rgba(145,190,184,.045))!important;border-color:rgba(231,244,240,.16)!important;box-shadow:0 22px 54px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.07)!important}
+html.sw-v2421 body.dark :is(h1,h2,h3,h4,strong,a),html.sw-v2421 body.taiwan-theme :is(h1,h2,h3,h4,strong,a){color:var(--tw-ink)!important;-webkit-text-fill-color:initial!important}
+html.sw-v2421 body.dark :is(p,li,.muted,.meta,.lede),html.sw-v2421 body.taiwan-theme :is(p,li,.muted,.meta,.lede){color:var(--tw-muted)!important}
+html.sw-v2421 body.dark :is(.btn,.button,.iconbtn,.icon-btn,.smallbtn,.pill,.chip,.seg,.segmented,.search,.switch,.toggle,.settings-toggle),html.sw-v2421 body.taiwan-theme :is(.btn,.button,.iconbtn,.icon-btn,.smallbtn,.pill,.chip,.seg,.segmented,.search,.switch,.toggle,.settings-toggle){background:linear-gradient(145deg,rgba(225,241,237,.13),rgba(109,154,148,.06))!important;border-color:rgba(235,246,243,.17)!important;color:var(--tw-ink)!important;box-shadow:0 12px 30px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.08)!important}
+html.sw-v2421 body.dark :is(.primary,.prominent,.btn-primary),html.sw-v2421 body.taiwan-theme :is(.primary,.prominent,.btn-primary){background:linear-gradient(135deg,rgba(94,150,135,.92),rgba(143,201,220,.72))!important;color:#f8f3ea!important}
+html.sw-v2421 body.dark :is(input,textarea,select),html.sw-v2421 body.taiwan-theme :is(input,textarea,select){background:rgba(240,248,246,.07)!important;border-color:rgba(231,244,240,.14)!important;color:var(--tw-ink)!important}
+html.sw-v2421 body.dark #themeBtn,html.sw-v2421 body.taiwan-theme #themeBtn{color:var(--tw-rice)!important}
+/* Taiwan mode accents: restrained, not flag-like */
+html.sw-v2421 body.dark :is(.tag,.badge,.eyebrow),html.sw-v2421 body.taiwan-theme :is(.tag,.badge,.eyebrow){color:#d7e8e3!important;background:rgba(94,150,135,.14)!important;border-color:rgba(141,185,173,.18)!important}
+html.sw-v2421 body.dark :is(.tab-pill,.active-pill,.seg-indicator),html.sw-v2421 body.taiwan-theme :is(.tab-pill,.active-pill,.seg-indicator){background:linear-gradient(135deg,rgba(94,150,135,.44),rgba(214,166,183,.18))!important}

@@ -1,0 +1,34 @@
+/* public-secondary-shared style component 05 · sw-v23-9-47-public-terms-button-fix */
+/* SIGN WELL v23.9.47 · keep consent label above progress/sheens */
+#newsletterTermsOverlay .newsletter-terms-agree,
+.newsletter-terms-overlay .newsletter-terms-agree,
+.newsletter-terms-agree{
+  color:#101216!important;
+  -webkit-text-fill-color:#101216!important;
+  text-shadow:none!important;
+  isolation:isolate!important;
+}
+#newsletterTermsOverlay .newsletter-terms-agree::before,
+.newsletter-terms-overlay .newsletter-terms-agree::before,
+.newsletter-terms-agree::before{z-index:0!important}
+#newsletterTermsOverlay .newsletter-terms-agree::after,
+.newsletter-terms-overlay .newsletter-terms-agree::after,
+.newsletter-terms-agree::after{z-index:1!important;pointer-events:none!important}
+#newsletterTermsOverlay .newsletter-terms-agree-label,
+.newsletter-terms-overlay .newsletter-terms-agree-label,
+.newsletter-terms-agree-label{
+  position:relative!important;
+  z-index:3!important;
+  display:inline-block!important;
+  color:#101216!important;
+  -webkit-text-fill-color:#101216!important;
+  text-shadow:none!important;
+  opacity:1!important;
+  mix-blend-mode:normal!important;
+}
+body.dark #newsletterTermsOverlay .newsletter-terms-agree-label,
+body.dark .newsletter-terms-overlay .newsletter-terms-agree-label,
+body.dark .newsletter-terms-agree-label{
+  color:#101216!important;
+  -webkit-text-fill-color:#101216!important;
+}

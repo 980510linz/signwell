@@ -1,0 +1,33 @@
+/* SIGN WELL v23.6.1 · final contrast guard
+   Loaded last. Readability only; no layout or data-flow changes. */
+:root{--sw-readable:#23384b;--sw-readable-muted:#657b8d;--sw-dark-readable:#f3f8fc;--sw-dark-muted:#b5c7d6}
+
+/* Light surfaces: never allow pale/transparent copy to disappear. */
+body:not(.dark) :is(.page-head p,.hero-sub,.page-sub,.lead,.muted,.meta,.article-meta,.article-top-meta,.article-note,.article-disclaimer,.footer,.footer-note,.share-note,.newsletter-note,.newsletter-hint,.newsletter-legal,.privacy-note,.terms-note,.empty,.search-empty,.person-meta,.about-subtitle,.about-copy,.topic-count,.topic-desc){color:var(--sw-readable-muted)!important;opacity:1!important}
+body:not(.dark) :is(.hero h1,.page-hero h1,.about-hero h1,.share-title,.newsletter-card h1,.article-top h1,.article-body h1,.article-body h2,.article-body h3,.article-body h4){color:#182d40!important;-webkit-text-fill-color:currentColor!important;text-shadow:none}
+
+/* Dark surfaces: force solid readable copy; avoid WebKit gradient-text failures. */
+body.dark{--ink:#f3f8fc!important;--text:#e6eef5!important;--muted:#b5c7d6!important;--soft:#9eb4c6!important}
+body.dark :is(.hero h1,.page-hero h1,.about-hero h1,.share-title,.newsletter-card h1,.article-top h1,.article-body h1,.article-body h2,.article-body h3,.article-body h4,.privacy-title,.terms-title){background:none!important;color:var(--sw-dark-readable)!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;-webkit-text-fill-color:var(--sw-dark-readable)!important;text-shadow:0 1px 18px rgba(0,0,0,.16)!important;opacity:1!important}
+body.dark :is(p,li,dd,dt,label,.lead,.page-sub,.hero-sub,.article-body,.article-body p,.article-body li,.newsletter-card p,.newsletter-note,.newsletter-hint,.newsletter-legal,.share-note,.privacy-copy,.terms-copy,.modal-card p,.sheet p){color:#dbe7f0!important;opacity:1!important}
+body.dark :is(.muted,.meta,.article-meta,.article-top-meta,.article-note,.footer,.footer-note,.person-meta,.about-subtitle,.topic-count,.topic-desc,.search-empty,.empty,small){color:var(--sw-dark-muted)!important;opacity:1!important}
+body.dark :is(input,textarea,select){color:#f5f9fc!important;background-color:rgba(15,27,39,.92)!important;border-color:rgba(255,255,255,.15)!important}
+body.dark :is(input,textarea)::placeholder{color:#a9bfd0!important;opacity:1!important}
+body.dark :is(.iconbtn,.softbtn,.pillbtn,.backlink,.toc button,.reader-control,.reader-tools button,.share-action,.newsletter-secondary,.modal-actions button:not(.primary):not(.danger),.sheet button:not(.primary):not(.danger)){color:#eff6fb!important;background-color:rgba(30,47,61,.82)!important;border-color:rgba(255,255,255,.15)!important;opacity:1!important}
+body.dark :is(.article-card,.topic-card,.person-card,.about-value,.about-team-card,.newsletter-card,.share-card,.searchbox,.modal-card,.sheet,.reading-continuity-card,.reader-trust-card){color:#edf5fb!important;border-color:rgba(255,255,255,.11)!important}
+body.dark .article-body :is(strong,b){color:#fff!important}
+body.dark .article-body mark{color:#182633!important;background:#f5df78!important;-webkit-text-fill-color:#182633!important}
+body.dark .article-body a{color:#9bd0f7!important;text-decoration-color:rgba(155,208,247,.48)!important}
+body.dark :is(.badge,.chip,.tag,.evidence-badge){opacity:1!important}
+
+/* Legal/newsletter sheets are frequent contrast regressions. */
+body.dark :is(.terms-modal,.privacy-modal,.legal-modal,.newsletter-terms,.terms-sheet,.privacy-sheet){color:#e8f1f7!important;background:rgba(16,29,41,.97)!important}
+body.dark :is(.terms-modal,.privacy-modal,.legal-modal,.newsletter-terms,.terms-sheet,.privacy-sheet) :is(h1,h2,h3,h4,strong){color:#fff!important;-webkit-text-fill-color:#fff!important}
+body.dark :is(.terms-modal,.privacy-modal,.legal-modal,.newsletter-terms,.terms-sheet,.privacy-sheet) :is(p,li,span,label){color:#d4e1ea!important;opacity:1!important}
+
+/* Disabled must still be legible. */
+button:disabled,[aria-disabled="true"]{opacity:.68!important}
+body.dark button:disabled,body.dark [aria-disabled="true"]{color:#c3d2de!important}
+
+@media(max-width:760px){body.dark :is(.hero h1,.page-hero h1,.about-hero h1,.share-title,.newsletter-card h1,.article-top h1){text-shadow:none!important}}
+@media(prefers-contrast:more){body.dark{--sw-dark-muted:#d0dce6!important} body:not(.dark){--sw-readable-muted:#435c70!important}}

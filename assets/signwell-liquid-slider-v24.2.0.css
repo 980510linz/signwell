@@ -1,0 +1,449 @@
+/* ============================================================
+   SIGN WELL v24.2.0 · Canonical Liquid Glass Slider System
+   Replaces legacy pager-segmented + no-bounce slider layers.
+   Design goals:
+   - optical glass over opaque pills
+   - edge refraction / chromatic dispersion over heavy fill
+   - direct, monotonic movement; no overshoot or autonomous bounce
+   - pointer/velocity-reactive specular light
+   - one visual language for page pager + article font dock
+   - automatic low-performance and reduced-motion fallback
+   ============================================================ */
+
+:root{
+  --sw-lg-duration:220ms;
+  --sw-lg-ease:cubic-bezier(.20,.72,.22,1);
+  --sw-lg-text:#29465b;
+  --sw-lg-text-muted:#718698;
+  --sw-lg-border:rgba(255,255,255,.76);
+  --sw-lg-fill-a:rgba(255,255,255,.22);
+  --sw-lg-fill-b:rgba(237,246,253,.10);
+  --sw-lg-shadow:rgba(51,89,121,.16);
+  --sw-lg-blue:rgba(142,200,245,.38);
+  --sw-lg-pink:rgba(238,181,211,.26);
+  --sw-lg-mint:rgba(167,226,211,.24);
+  --sw-lg-rim-white:rgba(255,255,255,.96);
+}
+
+/* Shared material state, fed by signwell-liquid-slider-v24.2.0.js */
+.pager,.sw-font-dock{
+  --lg-x:50%;
+  --lg-y:32%;
+  --lg-speed:0;
+  --lg-spec-x:0px;
+  --lg-spec-y:0px;
+  --lg-tilt-x:0deg;
+  --lg-tilt-y:0deg;
+  --lg-press:1;
+  isolation:isolate!important;
+  overflow:hidden!important;
+  border:1px solid var(--sw-lg-border)!important;
+  background:
+    radial-gradient(180px circle at var(--lg-x) var(--lg-y),rgba(255,255,255,.46),transparent 58%),
+    radial-gradient(130% 115% at 2% 96%,var(--sw-lg-blue),transparent 62%),
+    radial-gradient(125% 110% at 98% 96%,var(--sw-lg-pink),transparent 64%),
+    linear-gradient(150deg,var(--sw-lg-fill-a),var(--sw-lg-fill-b))!important;
+  -webkit-backdrop-filter:blur(24px) saturate(175%) brightness(1.06)!important;
+  backdrop-filter:blur(24px) saturate(175%) brightness(1.06)!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.76),
+    inset 0 -1px 0 rgba(94,123,148,.08),
+    0 18px 46px var(--sw-lg-shadow),
+    0 2px 8px rgba(51,89,121,.07)!important;
+  user-select:none!important;
+  -webkit-user-select:none!important;
+  transform-style:preserve-3d;
+}
+
+/* Refractive edge. The rail itself stays light; the rim sells the material. */
+.pager::before,.sw-font-dock::before{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:8!important;
+  border-radius:inherit!important;
+  padding:1.15px!important;
+  pointer-events:none!important;
+  background:
+    conic-gradient(from 138deg at var(--lg-x) var(--lg-y),
+      var(--sw-lg-rim-white) 0deg,
+      rgba(145,202,244,.66) 42deg,
+      rgba(255,255,255,.24) 88deg,
+      rgba(168,228,213,.52) 136deg,
+      rgba(255,255,255,.20) 188deg,
+      rgba(239,181,211,.50) 236deg,
+      rgba(255,255,255,.92) 314deg,
+      var(--sw-lg-rim-white) 360deg)!important;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0)!important;
+  -webkit-mask-composite:xor!important;
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0)!important;
+  mask-composite:exclude!important;
+  opacity:.76!important;
+  mix-blend-mode:plus-lighter;
+}
+
+/* Inner caustic / lensing line. */
+.pager::after,.sw-font-dock::after{
+  content:""!important;
+  position:absolute!important;
+  inset:1px!important;
+  z-index:1!important;
+  border-radius:inherit!important;
+  pointer-events:none!important;
+  background:
+    radial-gradient(92% 56% at var(--lg-x) 0%,rgba(255,255,255,.32),transparent 72%),
+    linear-gradient(180deg,rgba(255,255,255,.08),transparent 44%,rgba(110,153,187,.04))!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 0 18px rgba(255,255,255,.12)!important;
+}
+
+/* ---------------- Bottom / side page pager ---------------- */
+.pager{
+  position:fixed!important;
+  left:var(--rail-x,18px)!important;
+  right:auto!important;
+  top:50%!important;
+  bottom:auto!important;
+  z-index:120!important;
+  width:74px!important;
+  height:min(354px,calc(100dvh - 190px))!important;
+  min-height:300px!important;
+  padding:7px 6px!important;
+  border-radius:37px!important;
+  touch-action:none!important;
+  cursor:grab!important;
+  transform:translateY(-50%)!important;
+  transform-origin:50% 50%!important;
+  scale:var(--lg-press)!important;
+  transition:
+    scale 150ms ease-out,
+    box-shadow 180ms ease,
+    background 180ms linear!important;
+  contain:layout paint style;
+}
+.pager.grabbing,.pager.is-pressing,.pager.lg-pressed{
+  cursor:grabbing!important;
+  --lg-press:1.012;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.82),
+    inset 0 -1px 0 rgba(94,123,148,.08),
+    0 22px 54px rgba(51,89,121,.19),
+    0 3px 10px rgba(51,89,121,.08)!important;
+}
+
+.pager-items{
+  position:relative!important;
+  z-index:5!important;
+  width:100%!important;
+  height:100%!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  grid-template-rows:repeat(5,minmax(0,1fr))!important;
+  gap:0!important;
+}
+.nav-item{
+  position:relative!important;
+  z-index:5!important;
+  min-width:0!important;
+  min-height:0!important;
+  border:0!important;
+  border-radius:30px!important;
+  padding:0!important;
+  background:transparent!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:4px!important;
+  color:var(--sw-lg-text-muted)!important;
+  -webkit-text-fill-color:currentColor!important;
+  font-size:10px!important;
+  line-height:1!important;
+  font-weight:760!important;
+  letter-spacing:.02em!important;
+  pointer-events:none!important;
+  opacity:.90!important;
+  transform:none!important;
+  transition:color .18s ease,opacity .18s ease!important;
+}
+.nav-item svg{
+  width:18px!important;
+  height:18px!important;
+  stroke:currentColor!important;
+  fill:none!important;
+  stroke-width:1.85!important;
+  transform:none!important;
+  transition:stroke-width .18s ease,opacity .18s ease!important;
+}
+.nav-item span{transform:none!important;transition:opacity .18s ease!important}
+.nav-item.active{
+  color:var(--sw-lg-text)!important;
+  opacity:1!important;
+}
+.nav-item.active svg{stroke-width:2.15!important}
+.pager.grabbing .nav-item:not(.active){opacity:.66!important}
+
+/* Moving lens. Existing route logic owns translate3d; visual response uses independent scale/filters. */
+.pager-thumb{
+  position:absolute!important;
+  z-index:3!important;
+  pointer-events:none!important;
+  overflow:hidden!important;
+  border:1px solid rgba(255,255,255,.72)!important;
+  background:
+    radial-gradient(130% 105% at calc(26% + var(--lg-spec-x)) calc(-4% + var(--lg-spec-y)),rgba(255,255,255,.96),rgba(255,255,255,.30) 38%,transparent 68%),
+    linear-gradient(155deg,rgba(255,255,255,.42),rgba(216,235,249,.16) 58%,rgba(255,255,255,.28))!important;
+  -webkit-backdrop-filter:blur(11px) saturate(190%) brightness(1.08)!important;
+  backdrop-filter:blur(11px) saturate(190%) brightness(1.08)!important;
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,.98),
+    inset 0 -10px 18px -15px rgba(83,142,188,.34),
+    0 10px 22px rgba(46,83,114,.13),
+    0 1px 3px rgba(46,83,114,.09)!important;
+  transform-origin:50% 50%!important;
+  scale:1!important;
+  filter:saturate(calc(1 + var(--lg-speed) * .08)) brightness(calc(1 + var(--lg-speed) * .025));
+  transition:
+    filter 120ms linear,
+    box-shadow 160ms ease,
+    opacity 160ms ease,
+    scale 130ms ease-out!important;
+  will-change:transform,filter;
+}
+.pager-thumb::before{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  border-radius:inherit!important;
+  padding:1px!important;
+  pointer-events:none!important;
+  background:linear-gradient(142deg,
+    rgba(148,205,247,.62),
+    rgba(255,255,255,.96) 24%,
+    rgba(166,227,212,.42) 45%,
+    rgba(255,255,255,.18) 61%,
+    rgba(237,181,211,.42) 80%,
+    rgba(255,255,255,.90))!important;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0)!important;
+  -webkit-mask-composite:xor!important;
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0)!important;
+  mask-composite:exclude!important;
+  opacity:.78!important;
+}
+.pager-thumb::after{
+  content:""!important;
+  position:absolute!important;
+  inset:5% 8% auto!important;
+  height:46%!important;
+  border-radius:999px!important;
+  pointer-events:none!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.50),rgba(255,255,255,.12) 50%,transparent)!important;
+  filter:blur(.6px)!important;
+  opacity:.72!important;
+  translate:var(--lg-spec-x) var(--lg-spec-y)!important;
+  transition:translate 90ms linear,opacity 160ms ease!important;
+}
+.thumb-spec{
+  position:absolute!important;
+  z-index:2!important;
+  left:16%!important;
+  right:16%!important;
+  top:5px!important;
+  height:7px!important;
+  border-radius:999px!important;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.96),transparent)!important;
+  filter:blur(1.2px)!important;
+  opacity:.78!important;
+  transform:none!important;
+  translate:var(--lg-spec-x) var(--lg-spec-y)!important;
+  transition:translate 90ms linear,opacity 160ms ease!important;
+}
+.pager.grabbing .pager-thumb,.pager.is-pressing .pager-thumb,.pager.lg-pressed .pager-thumb{
+  scale:1.018!important;
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,1),
+    inset 0 -10px 18px -15px rgba(83,142,188,.38),
+    0 13px 27px rgba(46,83,114,.16),
+    0 1px 4px rgba(46,83,114,.10)!important;
+}
+.pager.is-changing .pager-thumb,.pager.nav-traveling .pager-thumb,body.pager-programmatic .pager-thumb{scale:1.010!important}
+body.pager-dragging .pager-thumb{transition:filter 90ms linear,box-shadow 120ms ease,scale 100ms ease-out!important}
+
+/* ---------------- Article font-size dock ---------------- */
+.sw-font-dock{
+  --sw-font-index:0;
+  position:fixed!important;
+  left:50%!important;
+  right:auto!important;
+  top:auto!important;
+  bottom:max(22px,calc(env(safe-area-inset-bottom) + 14px))!important;
+  z-index:1180!important;
+  width:194px!important;
+  height:54px!important;
+  padding:5px 6px!important;
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  align-items:stretch!important;
+  border-radius:999px!important;
+  transform:translate3d(-50%,0,0)!important;
+  transform-origin:50% 50%!important;
+  scale:var(--lg-press)!important;
+  transition:scale 150ms ease-out,box-shadow 180ms ease,background 180ms linear!important;
+}
+.sw-font-dock[data-size="small"]{--sw-font-index:0}
+.sw-font-dock[data-size="medium"]{--sw-font-index:1}
+.sw-font-dock[data-size="large"]{--sw-font-index:2}
+.sw-font-dock.is-pressing,.sw-font-dock.lg-pressed{--lg-press:1.012}
+.sw-font-dock-thumb{
+  position:absolute!important;
+  z-index:2!important;
+  left:6px!important;
+  top:5px!important;
+  bottom:5px!important;
+  width:calc((100% - 12px)/3)!important;
+  height:auto!important;
+  border-radius:999px!important;
+  border:1px solid rgba(255,255,255,.74)!important;
+  background:
+    radial-gradient(120% 105% at calc(26% + var(--lg-spec-x)) calc(-4% + var(--lg-spec-y)),rgba(255,255,255,.96),rgba(255,255,255,.26) 42%,transparent 70%),
+    linear-gradient(155deg,rgba(255,255,255,.40),rgba(217,236,250,.16))!important;
+  -webkit-backdrop-filter:blur(10px) saturate(188%) brightness(1.08)!important;
+  backdrop-filter:blur(10px) saturate(188%) brightness(1.08)!important;
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.98),inset 0 -8px 16px -14px rgba(83,142,188,.34),0 8px 18px rgba(46,83,114,.12)!important;
+  transform:translate3d(calc(var(--sw-font-index) * 100%),0,0)!important;
+  transform-origin:50% 50%!important;
+  scale:1!important;
+  transition:transform var(--sw-lg-duration) var(--sw-lg-ease),scale 130ms ease-out,box-shadow 160ms ease!important;
+  will-change:transform;
+}
+.sw-font-dock-thumb::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  padding:1px;
+  background:linear-gradient(140deg,rgba(145,202,244,.58),rgba(255,255,255,.94) 28%,rgba(166,227,212,.38) 48%,rgba(238,181,211,.40) 78%,rgba(255,255,255,.88));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude;
+  opacity:.74;
+  pointer-events:none;
+}
+.sw-font-dock.is-changing .sw-font-dock-thumb,.sw-font-dock.is-pressing .sw-font-dock-thumb,.sw-font-dock.lg-pressed .sw-font-dock-thumb{scale:1.018!important}
+.sw-font-dock button{
+  position:relative!important;
+  z-index:5!important;
+  min-width:0!important;
+  min-height:44px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:999px!important;
+  background:transparent!important;
+  color:var(--sw-lg-text-muted)!important;
+  -webkit-text-fill-color:currentColor!important;
+  font-size:13px!important;
+  line-height:1!important;
+  font-weight:820!important;
+  cursor:pointer!important;
+  touch-action:manipulation!important;
+  transform:none!important;
+  transition:color .18s ease,opacity .18s ease!important;
+}
+.sw-font-dock button.active{color:var(--sw-lg-text)!important;-webkit-text-fill-color:currentColor!important}
+.sw-font-dock button:focus-visible{outline:2px solid rgba(84,143,192,.40)!important;outline-offset:-3px!important}
+
+/* Dark / Taiwan palette: glass stays transparent and borrows color from the page behind it. */
+body.dark .pager,body.dark .sw-font-dock,
+body.taiwan-theme .pager,body.taiwan-theme .sw-font-dock{
+  --sw-lg-text:#f1eee5;
+  --sw-lg-text-muted:#adb8b0;
+  --sw-lg-border:rgba(242,234,219,.20);
+  --sw-lg-fill-a:rgba(242,234,219,.10);
+  --sw-lg-fill-b:rgba(22,37,31,.18);
+  --sw-lg-shadow:rgba(0,0,0,.28);
+  --sw-lg-blue:rgba(58,112,119,.18);
+  --sw-lg-pink:rgba(116,58,63,.15);
+  --sw-lg-mint:rgba(74,96,76,.18);
+  --sw-lg-rim-white:rgba(245,239,226,.62);
+  -webkit-backdrop-filter:blur(25px) saturate(132%) brightness(.92)!important;
+  backdrop-filter:blur(25px) saturate(132%) brightness(.92)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),inset 0 -1px 0 rgba(0,0,0,.12),0 20px 48px rgba(0,0,0,.24)!important;
+}
+body.dark .pager-thumb,body.taiwan-theme .pager-thumb,
+body.dark .sw-font-dock-thumb,body.taiwan-theme .sw-font-dock-thumb{
+  background:
+    radial-gradient(130% 110% at calc(26% + var(--lg-spec-x)) calc(-6% + var(--lg-spec-y)),rgba(255,255,255,.28),rgba(255,255,255,.06) 42%,transparent 70%),
+    linear-gradient(155deg,rgba(236,229,215,.17),rgba(65,86,73,.17) 58%,rgba(117,66,66,.10))!important;
+  border-color:rgba(245,239,226,.18)!important;
+  -webkit-backdrop-filter:blur(12px) saturate(145%) brightness(.98)!important;
+  backdrop-filter:blur(12px) saturate(145%) brightness(.98)!important;
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.18),inset 0 -10px 18px -15px rgba(0,0,0,.28),0 10px 24px rgba(0,0,0,.20)!important;
+}
+body.dark .nav-item,body.taiwan-theme .nav-item{color:var(--sw-lg-text-muted)!important}
+body.dark .nav-item.active,body.taiwan-theme .nav-item.active,
+body.dark .sw-font-dock button.active,body.taiwan-theme .sw-font-dock button.active{color:var(--sw-lg-text)!important}
+
+/* Phones: horizontal bottom rail with five stable segments. */
+@media (max-width:760px){
+  .pager{
+    left:50%!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:max(12px,calc(env(safe-area-inset-bottom) + 8px))!important;
+    width:min(94vw,410px)!important;
+    height:68px!important;
+    min-height:0!important;
+    padding:6px!important;
+    border-radius:34px!important;
+    transform:translateX(-50%)!important;
+  }
+  .pager-items{
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    grid-template-rows:1fr!important;
+  }
+  .nav-item{font-size:9.5px!important;gap:3px!important;border-radius:28px!important}
+  .nav-item svg{width:17px!important;height:17px!important}
+  .sw-font-dock{
+    width:188px!important;
+    height:52px!important;
+    bottom:calc(env(safe-area-inset-bottom) + 90px)!important;
+  }
+}
+@media (max-width:390px){
+  .pager{width:calc(100vw - 20px)!important;height:66px!important}
+  .sw-font-dock{width:176px!important}
+}
+
+/* Accessibility / performance tiers. */
+@media (prefers-reduced-motion:reduce){
+  .pager,.pager-thumb,.nav-item,.nav-item svg,.nav-item span,
+  .sw-font-dock,.sw-font-dock-thumb,.sw-font-dock button,.thumb-spec{
+    transition:none!important;
+    animation:none!important;
+  }
+  .pager,.sw-font-dock{--lg-press:1!important}
+  .pager-thumb,.sw-font-dock-thumb{scale:1!important;filter:none!important}
+}
+
+html.sw-lg-lite .pager,html.sw-lg-lite .sw-font-dock,
+body.perf-lite .pager,body.perf-lite .sw-font-dock{
+  -webkit-backdrop-filter:blur(14px) saturate(140%)!important;
+  backdrop-filter:blur(14px) saturate(140%)!important;
+}
+html.sw-lg-lite .pager::before,html.sw-lg-lite .sw-font-dock::before,
+body.perf-lite .pager::before,body.perf-lite .sw-font-dock::before{
+  opacity:.38!important;
+  mix-blend-mode:normal!important;
+}
+html.sw-lg-lite .pager-thumb,html.sw-lg-lite .sw-font-dock-thumb,
+body.perf-lite .pager-thumb,body.perf-lite .sw-font-dock-thumb{
+  -webkit-backdrop-filter:blur(7px) saturate(145%)!important;
+  backdrop-filter:blur(7px) saturate(145%)!important;
+  filter:none!important;
+}
+html.sw-lg-lite .thumb-spec,body.perf-lite .thumb-spec{display:none!important}
+
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .pager,.sw-font-dock{background:rgba(247,250,252,.92)!important}
+  body.dark .pager,body.dark .sw-font-dock,body.taiwan-theme .pager,body.taiwan-theme .sw-font-dock{background:rgba(29,42,36,.94)!important}
+}

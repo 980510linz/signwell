@@ -1,0 +1,22 @@
+{
+  "name": "SIGN WELL 欣緯生醫",
+  "short_name": "SIGN WELL",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7fbfe",
+  "theme_color": "#eef7ff",
+  "description": "臨床筆記、醫學推理，以及值得留下的知識。",
+  "icons": [
+    {
+      "src": "assets/signwell-app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/signwell-app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+/* SIGN WELL v24.21 · Glass System */
+:root{
+  --sw-bg:#f7fbff;--sw-bg2:#fff8fb;--sw-ink:#162033;--sw-muted:#657087;
+  --sw-blue:#a9d9f3;--sw-blue-strong:#6fb9df;--sw-pink:#f3c8d8;--sw-pink-strong:#de9eb8;
+  --sw-green:#7fae9d;--sw-cream:#fffaf2;
+  --sw-glass:rgba(255,255,255,.38);--sw-glass-strong:rgba(255,255,255,.56);--sw-glass-edge:rgba(255,255,255,.78);
+  --sw-shadow:0 18px 46px rgba(60,81,120,.14),0 3px 10px rgba(60,81,120,.08);
+  --sw-shadow-hover:0 24px 58px rgba(60,81,120,.18),0 5px 14px rgba(60,81,120,.10);
+  --sw-spring:cubic-bezier(.22,1.35,.36,1);--sw-ease:cubic-bezier(.2,.75,.24,1);
+  --sw-r-xl:30px;--sw-r-lg:24px;--sw-r-md:18px;--sw-r-pill:999px;
+  --sw-blur:18px;--sw-sat:165%;--sw-motion:1;
+}
+html.sw-v2421{background:var(--sw-bg);overflow-x:clip}
+html.sw-v2421 body{background:
+ radial-gradient(55rem 36rem at -8% -10%,rgba(169,217,243,.34),transparent 70%),
+ radial-gradient(46rem 32rem at 108% 0%,rgba(243,200,216,.30),transparent 70%),
+ linear-gradient(180deg,#f9fcff 0%,#fffafd 58%,#f8fbff 100%)!important;
+ color:var(--sw-ink);overflow-x:clip;min-height:100vh}
+html.sw-v2421 body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-2;background:
+ radial-gradient(36rem 24rem at 18% 24%,rgba(169,217,243,.15),transparent 72%),
+ radial-gradient(30rem 22rem at 78% 54%,rgba(243,200,216,.13),transparent 74%);filter:blur(10px)}
+
+/* Material is opt-in/scoped; avoids polluting specialist 3D/WebGL components. */
+html.sw-v2421 :is(.glass,.sw-glass,.hero-card,.home-hero-card,.article-card,.share-card,.newsletter-card,.about-manifesto,.about-value,.about-team-card,.article-view,.toc,.sw-trust-panel,.sw-related-card,.card,.topbar,.nav-pill,.brand-pill,.sw-brand-pill,.modal,.dialog,.panel,.settings-card,.editor-card,.ai-card,.research-card):not(.sw-no-liquid){
+ position:relative;isolation:isolate;background:linear-gradient(145deg,rgba(255,255,255,.53),rgba(255,255,255,.22))!important;
+ -webkit-backdrop-filter:blur(var(--sw-blur)) saturate(var(--sw-sat));backdrop-filter:blur(var(--sw-blur)) saturate(var(--sw-sat));
+ border:1px solid rgba(255,255,255,.64)!important;box-shadow:var(--sw-shadow)!important;
+}
+html.sw-v2421 :is(.glass,.sw-glass,.hero-card,.home-hero-card,.article-card,.share-card,.newsletter-card,.about-manifesto,.about-value,.about-team-card,.article-view,.toc,.sw-trust-panel,.sw-related-card,.card,.topbar,.nav-pill,.brand-pill,.sw-brand-pill,.modal,.dialog,.panel,.settings-card,.editor-card,.ai-card,.research-card):not(.sw-no-liquid)::after{
+ content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;
+ background:radial-gradient(180px 110px at var(--sw-gx,32%) var(--sw-gy,18%),rgba(255,255,255,.62),transparent 62%),linear-gradient(145deg,rgba(255,255,255,.5),transparent 30% 72%,rgba(255,255,255,.22));
+ opacity:calc(.42 + var(--sw-gv,0)*.32);mix-blend-mode:screen;transition:opacity .2s ease}
+
+html.sw-v2421 :is(.article-card,.share-card,.about-value,.about-team-card,.sw-related-card,.card,.settings-card,.editor-card,.ai-card,.research-card):not(.sw-no-liquid){
+ transition:transform .42s var(--sw-spring),box-shadow .28s ease,border-color .25s ease}
+html.sw-v2421 :is(.article-card,.share-card,.about-value,.about-team-card,.sw-related-card,.card,.settings-card,.editor-card,.ai-card,.research-card):not(.sw-no-liquid):hover{
+ transform:translateY(-3px) perspective(800px) rotateX(var(--sw-rx,0deg)) rotateY(var(--sw-ry,0deg));box-shadow:var(--sw-shadow-hover)!important}
+
+/* Controls: explicit common classes only, no generic role/button selector. */
+html.sw-v2421 :is(.btn,.button,.iconbtn,.icon-btn,.smallbtn,.pill,.chip,.seg,.segmented,.search,.switch,.toggle,.settings-toggle,.scan-button):not(.sw-no-liquid){
+ position:relative;isolation:isolate;border:1px solid rgba(255,255,255,.72)!important;background:linear-gradient(145deg,rgba(255,255,255,.58),rgba(255,255,255,.28))!important;
+ -webkit-backdrop-filter:blur(16px) saturate(170%);backdrop-filter:blur(16px) saturate(170%);
+ box-shadow:0 10px 28px rgba(70,90,125,.13),inset 0 1px 0 rgba(255,255,255,.78),inset 0 0 18px rgba(255,255,255,.18)!important;
+ transition:transform .36s var(--sw-spring),box-shadow .25s ease,background .25s ease;will-change:transform}
+html.sw-v2421 :is(.btn,.button,.iconbtn,.icon-btn,.smallbtn,.pill,.chip,.seg,.segmented,.search,.switch,.toggle,.settings-toggle,.scan-button):not(.sw-no-liquid):hover{transform:translateY(-1px) scale(1.015)}
+html.sw-v2421 :is(.btn,.button,.iconbtn,.icon-btn,.smallbtn,.pill,.chip,.search,.settings-toggle,.scan-button):not(.sw-no-liquid):active{transform:scale(.955)}
+html.sw-v2421 :is(.primary,.prominent,.btn-primary):not(.sw-no-liquid){background:linear-gradient(135deg,rgba(126,190,224,.82),rgba(222,158,184,.68))!important;color:#142033!important}
+
+/* Brand pill */
+html.sw-v2421 :is(.brand,.brand-pill,.sw-brand-pill){border-radius:999px!important;padding:.48rem .78rem!important;min-height:auto!important;line-height:1.05;letter-spacing:-.01em}
+html.sw-v2421 :is(.brand,.brand-pill,.sw-brand-pill) small{color:#111!important;opacity:.72}
+
+/* Typography and content */
+html.sw-v2421 :is(h1,h2,h3,h4,strong){color:var(--sw-ink)}
+html.sw-v2421 :is(p,li,.muted,.meta,.lede){color:var(--sw-muted)}
+html.sw-v2421 a{color:inherit;text-underline-offset:.16em}
+html.sw-v2421 .article-view,html.sw-v2421 article{content-visibility:auto;contain-intrinsic-size:1px 780px}
+html.sw-v2421 img{max-width:100%;height:auto}
+
+/* Form/input polish */
+html.sw-v2421 :is(input,textarea,select){border-radius:16px;border:1px solid rgba(107,135,175,.18);background:rgba(255,255,255,.62);color:var(--sw-ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.7);transition:border-color .2s ease,box-shadow .2s ease,background .2s ease}
+html.sw-v2421 :is(input,textarea,select):focus{outline:none;border-color:rgba(111,185,223,.64);box-shadow:0 0 0 4px rgba(169,217,243,.24)}
+
+/* Better layout safety */
+html.sw-v2421 :is(.container,.wrap,.shell,main,section){max-width:100%}
+html.sw-v2421 :is(button,.btn,.button,input,select,textarea){font:inherit}
+html.sw-v2421 :is(button,.btn,.button,.iconbtn,.icon-btn){-webkit-tap-highlight-color:transparent}
+html.sw-v2421 :focus-visible{outline:2px solid #4d9bc7!important;outline-offset:3px!important}
+
+/* Bottom nav / segmented glass follows reference feel. */
+html.sw-v2421 :is(.tabbar,.bottom-nav,.mobile-nav){-webkit-backdrop-filter:blur(20px) saturate(175%);backdrop-filter:blur(20px) saturate(175%)}
+html.sw-v2421 :is(.tab-pill,.active-pill,.seg-indicator){background:linear-gradient(135deg,rgba(169,217,243,.54),rgba(243,200,216,.42))!important;box-shadow:0 7px 18px rgba(73,104,147,.12),inset 0 1px 0 rgba(255,255,255,.86)!important}
+
+/* Performance tiers */
+html[data-sw-quality="medium"]{--sw-blur:14px;--sw-sat:150%}
+html[data-sw-quality="low"]{--sw-blur:9px;--sw-sat:135%}
+html[data-sw-quality="low"] body::before{filter:none;opacity:.72}
+html[data-sw-quality="low"] :is(.glass,.sw-glass,.hero-card,.home-hero-card,.article-card,.share-card,.newsletter-card,.about-manifesto,.about-value,.about-team-card,.article-view,.toc,.sw-trust-panel,.sw-related-card,.card,.topbar,.nav-pill,.brand-pill,.sw-brand-pill,.modal,.dialog,.panel,.settings-card,.editor-card,.ai-card,.research-card):not(.sw-no-liquid)::after{display:none}
+
+@media(max-width:760px){
+ :root{--sw-r-xl:24px;--sw-r-lg:20px;--sw-blur:13px}
+ html.sw-v2421 body{background:radial-gradient(34rem 24rem at -18% -4%,rgba(169,217,243,.26),transparent 72%),radial-gradient(30rem 22rem at 118% 2%,rgba(243,200,216,.22),transparent 74%),linear-gradient(180deg,#f9fcff,#fffafd)!important}
+ html.sw-v2421 :is(button,.btn,.button,.iconbtn,.icon-btn,[role="tab"],input,select){min-height:44px}
+ html.sw-v2421 :is(.modal,.dialog,.panel,.card,.article-card,.newsletter-card){max-width:calc(100vw - 24px)!important}
+ html.sw-v2421 :is(.toolbar,.actions,.button-row,.controls){flex-wrap:wrap}
+}
+@media(prefers-reduced-transparency:reduce){
+ html.sw-v2421 :is(.glass,.sw-glass,.hero-card,.home-hero-card,.article-card,.share-card,.newsletter-card,.about-manifesto,.about-value,.about-team-card,.article-view,.toc,.sw-trust-panel,.sw-related-card,.card,.topbar,.nav-pill,.brand-pill,.sw-brand-pill,.modal,.dialog,.panel,.settings-card,.editor-card,.ai-card,.research-card){-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:#f7fbff!important}
+}
+@media(prefers-reduced-motion:reduce){html.sw-v2421 *{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
