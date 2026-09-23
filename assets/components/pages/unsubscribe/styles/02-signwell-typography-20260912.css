@@ -1,0 +1,31 @@
+/* unsubscribe style component 02 · signwell-typography-20260912 */
+/* ============================================================
+   SIGN WELL · Typography 2026-09-12
+   Scope: visual layer only. No application logic is changed.
+   Microsoft JhengHei = body/editorial copy
+   Yuanti / rounded fallback = headings, brand and controls
+   ============================================================ */
+:root{
+  --sw-font-main:"Microsoft JhengHei","Microsoft JhengHei UI","微軟正黑體",sans-serif;
+  --sw-font-round:"Yuanti TC","STYuanti-TC-Regular","Microsoft JhengHei UI","Microsoft JhengHei","微軟正黑體",sans-serif;
+  --font-sans:var(--sw-font-main);
+  --font-serif:var(--sw-font-round);
+  --sans:var(--sw-font-main);
+  --serif:var(--sw-font-round);
+}
+
+html,body,
+body *,
+button,input,textarea,select,option{
+  font-family:var(--sw-font-main)!important;
+}
+
+h1,h2,h3,h4,h5,h6,.splash-word,.brand-mark,.brand-copy strong,.brand-title,.brand-name,.eyebrow,.kicker,.page-title,.section-title,.article-card h3,.topic-card h3,.person-name,.person-card h3,.newsletter-title,.newsletter-kicker,.search-title,.share-title,.about-manifesto h2,.about-team-head h2,.idle-subscribe-title,.nl-flow-title,.newsletter-terms-title,button,.pillbtn,.softbtn,.backlink,.newsletter-submit,.share-copy,.search-close,.to-top,.badge,.chip,.tag{
+  font-family:var(--sw-font-round)!important;
+}
+
+/* Keep the two-font system deterministic even when legacy declarations
+   still contain Georgia, Times, SF Pro, PingFang or Mincho. */
+code,pre,kbd,samp,.search-kbd,.content-area{
+  font-family:var(--sw-font-main)!important;
+}

@@ -1,0 +1,35 @@
+/* Public home component 06 · source id: sw-v23-9-30-upright-heavy-blur */
+/* v23.9.30 · upright background mark, ~70% visual blur */
+.sw-home-logo-stage{
+  opacity:.15!important;
+  transform:translate(-50%,-50%)!important;
+}
+.sw-home-logo2d{
+  transform:rotate(0deg)!important;
+  animation:none!important;
+  filter:blur(26px) saturate(.96) brightness(1.03)!important;
+  will-change:auto!important;
+}
+.sw-home-logo-face{
+  filter:saturate(.92) brightness(1.04)!important;
+}
+.sw-home-logo-stage::before{
+  filter:blur(34px) saturate(106%)!important;
+  opacity:.74!important;
+}
+.sw-home-logo-stage::after{
+  filter:blur(30px)!important;
+  opacity:.62!important;
+}
+body.dark .sw-home-logo-stage{opacity:.09!important}
+body.dark .sw-home-logo-stage::before{filter:blur(34px) saturate(102%)!important;opacity:.54!important}
+body.dark .sw-home-logo-stage::after{filter:blur(30px)!important;opacity:.40!important}
+@media(max-width:700px){
+  .sw-home-logo-stage{opacity:.13!important}
+  .sw-home-logo2d{filter:blur(22px) saturate(.94) brightness(1.03)!important}
+  .sw-home-logo-stage::before{filter:blur(28px) saturate(104%)!important}
+  .sw-home-logo-stage::after{filter:blur(24px)!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .sw-home-logo2d{transform:rotate(0deg)!important;animation:none!important}
+}

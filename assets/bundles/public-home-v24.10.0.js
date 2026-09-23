@@ -157,6 +157,56 @@ function trackPublicView(kind,key){
   writePublicAnalytics(a);
 }
 
+/* Article discovery CTR uses qualified card impressions, not route views.
+   A qualified impression means >=50% visible for >=800 ms. Both impressions and
+   clicks are de-duplicated per article per browser tab via sessionStorage only. */
+const SW_ARTICLE_DISCOVERY_SESSION='signwell-article-discovery-v1';
+const SW_ARTICLE_DISCOVERY_PENDING='signwell-article-discovery-pending-v1';
+let articleDiscoveryFlushTimer=null;
+function readArticleDiscoverySession(){try{return JSON.parse(sessionStorage.getItem(SW_ARTICLE_DISCOVERY_SESSION)||'{"impressions":{},"clicks":{}}')}catch(_){return{impressions:{},clicks:{}}}}
+function writeArticleDiscoverySession(s){try{sessionStorage.setItem(SW_ARTICLE_DISCOVERY_SESSION,JSON.stringify(s))}catch(_){}}
+function readArticleDiscoveryPending(){try{const x=JSON.parse(sessionStorage.getItem(SW_ARTICLE_DISCOVERY_PENDING)||'[]');return Array.isArray(x)?x:[]}catch(_){return[]}}
+function writeArticleDiscoveryPending(items){try{sessionStorage.setItem(SW_ARTICLE_DISCOVERY_PENDING,JSON.stringify((items||[]).slice(-40)))}catch(_){}}
+function scheduleArticleDiscoveryFlush(delay=650){if(articleDiscoveryFlushTimer)return;articleDiscoveryFlushTimer=setTimeout(()=>{articleDiscoveryFlushTimer=null;flushArticleDiscoveryEvents().catch(()=>{})},delay)}
+async function flushArticleDiscoveryEvents(){
+  if(!remoteAnalyticsEnabled())return;
+  const pending=readArticleDiscoveryPending().filter(x=>x&&x.eventId&&Date.now()-Number(x.at||0)<86400000).slice(0,24);if(!pending.length)return;
+  const sentIds=new Set(pending.map(x=>String(x.eventId)));
+  try{
+    const r=await signwellPublicGasBridge('analytics.trackBatch',{events:pending.map(x=>({kind:x.kind,key:x.key,eventId:x.eventId}))},18000);
+    if(r&&r.ok!==false){writeArticleDiscoveryPending(readArticleDiscoveryPending().filter(x=>!sentIds.has(String(x&&x.eventId||''))))}
+  }catch(_){writeArticleDiscoveryPending(readArticleDiscoveryPending().filter(x=>x&&Date.now()-Number(x.at||0)<86400000))}
+}
+function trackArticleDiscoveryEvent(kind,slug){
+  const clean=String(slug||'').trim();if(!clean||!['article_impression','article_click'].includes(kind))return false;
+  const s=readArticleDiscoverySession();s.impressions=s.impressions&&typeof s.impressions==='object'?s.impressions:{};s.clicks=s.clicks&&typeof s.clicks==='object'?s.clicks:{};
+  const bucket=kind==='article_impression'?s.impressions:s.clicks;if(bucket[clean])return false;
+  bucket[clean]=Date.now();writeArticleDiscoverySession(s);
+  const pending=readArticleDiscoveryPending();pending.push({kind,key:clean,eventId:makeAnalyticsEventId(kind,clean),at:Date.now()});writeArticleDiscoveryPending(pending);scheduleArticleDiscoveryFlush(kind==='article_click'?80:650);return true;
+}
+setTimeout(()=>flushArticleDiscoveryEvents().catch(()=>{}),280);
+let articleCardImpressionObserver=null;
+const articleCardImpressionTimers=new Map();
+function bindArticleCardImpressions(){
+  if(articleCardImpressionObserver){articleCardImpressionObserver.disconnect();articleCardImpressionObserver=null}
+  articleCardImpressionTimers.forEach(t=>clearTimeout(t));articleCardImpressionTimers.clear();
+  const cards=$$('[data-open]');if(!cards.length||!('IntersectionObserver' in window))return;
+  articleCardImpressionObserver=new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{
+      const el=entry.target,slug=String(el?.dataset?.open||'');if(!slug)return;
+      if(entry.isIntersecting&&entry.intersectionRatio>=0.5){
+        if(articleCardImpressionTimers.has(el))return;
+        const timer=setTimeout(()=>{articleCardImpressionTimers.delete(el);trackArticleDiscoveryEvent('article_impression',slug);articleCardImpressionObserver?.unobserve(el)},800);
+        articleCardImpressionTimers.set(el,timer);
+      }else{
+        const timer=articleCardImpressionTimers.get(el);if(timer){clearTimeout(timer);articleCardImpressionTimers.delete(el)}
+      }
+    });
+  },{threshold:[0,0.5,0.75,1]});
+  cards.forEach(el=>articleCardImpressionObserver.observe(el));
+}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){articleCardImpressionTimers.forEach(t=>clearTimeout(t));articleCardImpressionTimers.clear()}else{bindArticleCardImpressions()}});
+
 let lastTrackedViewSignature='';
 
 function makeAnalyticsEventId(kind,key){
@@ -394,17 +444,27 @@ async function fetchArticlesFresh(){
   return Array.isArray(page)?{ok:true,data:page,source:'pages'}:{ok:false,data:[]};
 }
 
+function swReconcileArticleCache(next){
+  const live=new Set((Array.isArray(next)?next:[]).map(x=>String(x&&x.slug||'')).filter(Boolean));
+  for(const slug of articleCache.keys())if(!live.has(String(slug)))articleCache.delete(slug);
+  articles=(Array.isArray(next)?next:[]).filter(x=>x&&x.status==='Published');
+  sortArticles();
+  return articles;
+}
 async function loadArticles(){
   const cached=SW_IS_SHARE_DOCUMENT?null:readSessionJSON(SW_ARTICLES_CACHE);
   if(Array.isArray(cached)){
     articles=cached.filter(x=>x&&x.status==='Published');
     sortArticles();
-    return;
   }
   const fresh=await fetchArticlesFresh();
-  articles=fresh.ok?fresh.data:[];
-  sortArticles();
-  if(fresh.ok)writeSessionJSON(SW_ARTICLES_CACHE,articles);
+  if(fresh.ok){
+    swReconcileArticleCache(fresh.data);
+    writeSessionJSON(SW_ARTICLES_CACHE,articles);
+  }else if(!Array.isArray(cached)){
+    articles=[];
+    sortArticles();
+  }
 }
 
 async function fetchTopicsFresh(){
@@ -464,8 +524,7 @@ async function revalidatePublicData(force=false){
     const nextA=af.data.filter(x=>x&&x.status==='Published');
     nextA.sort((a,b)=>String(b.publishedAt||'').localeCompare(String(a.publishedAt||'')));
     if(stableJSON(nextA)!==beforeArticles){
-      articles=nextA;
-      articleCache.clear();
+      swReconcileArticleCache(nextA);
       changed=true;
     }
     writeSessionJSON(SW_ARTICLES_CACHE,nextA);
@@ -505,7 +564,7 @@ async function refreshArticleAvailability(slug){
   if(!fresh.ok)return true;
   const next=fresh.data.slice().sort((a,b)=>String(b.publishedAt||'').localeCompare(String(a.publishedAt||'')));
   const stillLive=next.some(a=>String(a.slug)===String(slug));
-  articles=next;writeSessionJSON(SW_ARTICLES_CACHE,next);
+  swReconcileArticleCache(next);writeSessionJSON(SW_ARTICLES_CACHE,articles);
   if(!stillLive)articleCache.delete(slug);
   return stillLive;
 }
@@ -708,6 +767,8 @@ function publicPersonById(id){
 function publisherForArticle(a){
   const p=publicPersonById(a?.publisherId);
   if(p)return p;
+  const override=String(a?.publisherName||'').trim();
+  if(override)return {id:'',name:override,role:'',photo:String(a?.publisherPhoto||'')};
   return {
     id:'',
     name:t('articleBrand')||'SIGN WELL · 欣緯生醫',
@@ -730,6 +791,12 @@ function publisherAvatarHTML(person,compact=false){
       :escapeHTML(publisherInitials(person?.name||'SIGN WELL'))
   }</span>`;
 }
+function swPublicSummary10s(a){
+  let text=String(a?.summary10s||a?.excerpt||'').replace(/\s+/g,' ').trim();
+  if(text.length>120)text=text.slice(0,119).replace(/[，、；：,:;\s]+$/,'')+'…';
+  return text;
+}
+function swSummary10sHTML(a){const text=swPublicSummary10s(a);return text?`<aside class="sw-summary10s"><b>10 秒摘要</b><p>${escapeHTML(text)}</p></aside>`:''}
 
 function articleCard(a){
   const publisher=publisherForArticle(a);
@@ -745,10 +812,11 @@ function articleCard(a){
 }
 function bindArticleCards(){
   $$('[data-open]').forEach(el=>{
-    const open=()=>goto('article/'+encodeURIComponent(el.dataset.open));
+    const open=()=>{trackArticleDiscoveryEvent('article_impression',el.dataset.open);trackArticleDiscoveryEvent('article_click',el.dataset.open);goto('article/'+encodeURIComponent(el.dataset.open))};
     el.onclick=open;
     el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}};
   });
+  bindArticleCardImpressions();
 }
 function skeletonGrid(n=6){
   return `<div class="article-grid">${Array.from({length:n}).map(()=>
@@ -762,23 +830,179 @@ function skeletonArticle(){
   return `<article class="article-view"><header class="article-top"><div class="skeleton sk-line" style="width:120px;height:16px"></div><div class="skeleton sk-line" style="width:min(680px,90%);height:58px;margin-top:22px"></div><div class="skeleton sk-line" style="width:220px;height:13px;margin-top:18px"></div></header><div class="skeleton" style="height:300px;border-radius:30px;margin:22px 0"></div></article>`;
 }
 
+
+let homeFXRAF=0;
+let homeFXBound=false;
+
+function updateHomeScrollFX(){
+  homeFXRAF=0;
+  const scene=$('.home-scroll-scene');
+  const next=$('.home-next-stage');
+  if(!scene||!next)return;
+
+  const max=Math.max(320,Math.min(innerHeight*.70,560));
+  const raw=Math.max(0,Math.min(1,scrollY/max));
+  const ease=1-Math.pow(1-raw,2.35);
+
+  const root=document.documentElement.style;
+  root.setProperty('--home-hero-y',(-10*ease).toFixed(2)+'px');
+  root.setProperty('--home-card-y',(-6*ease).toFixed(2)+'px');
+  root.setProperty('--home-hero-opacity',(1-.10*ease).toFixed(3));
+
+  root.setProperty('--home-next-y',((1-ease)*32).toFixed(2)+'px');
+  root.setProperty('--home-next-opacity',(.42+.58*ease).toFixed(3));
+
+}
+
+function queueHomeScrollFX(){
+  if(homeFXRAF)return;
+  homeFXRAF=requestAnimationFrame(updateHomeScrollFX);
+}
+
+
+let signwellRibbonRAF=0;
+let signwellRibbonBound=false;
+let signwellRibbonTracks=[];
+let signwellRibbonPeriods=[];
+let signwellRibbonPhase=0;
+let signwellRibbonLastFrame=0;
+
+/* v24.0.07 · constant cruise ribbon.
+   Motion is autonomous only: scroll / touch velocity never changes ribbon speed or color. */
+function swRibbonConfig(){
+  const mobile=matchMedia('(max-width:700px)').matches;
+  return {speed:mobile?6.5:8.0}; // px/s · intentionally calm and constant
+}
+
+function prepareSignwellRibbonTracks(){
+  const ribbon=document.querySelector('[data-signwell-ribbon]');
+  const tracks=[...document.querySelectorAll('[data-signwell-ribbon-track]')];
+  if(!ribbon||!tracks.length)return null;
+
+  /* Two identical blocks keep the endless wrap seamless. */
+  tracks.forEach(track=>{
+    if(track.dataset.loopReady==='1')return;
+    const unit='SIGN WELL\u00a0\u00a0 ';
+    const block=unit.repeat(10);
+    track.textContent=block+block;
+    track.dataset.loopReady='1';
+  });
+
+  signwellRibbonTracks=tracks;
+  signwellRibbonPeriods=tracks.map(track=>Math.max(1,track.scrollWidth/2));
+  return ribbon;
+}
+
+function applySignwellRibbonTransform(){
+  signwellRibbonTracks.forEach((track,i)=>{
+    const period=signwellRibbonPeriods[i]||1;
+    const offset=i?period*.075:0;
+    const wrapped=((signwellRibbonPhase+offset)%period+period)%period;
+    track.style.transform=`translate3d(${-wrapped.toFixed(3)}px,0,0)`;
+  });
+}
+
+function stepSignwellRibbon(now){
+  signwellRibbonRAF=0;
+  const ribbon=document.querySelector('[data-signwell-ribbon]');
+  if(!ribbon||!document.documentElement.contains(ribbon)){
+    signwellRibbonTracks=[];
+    signwellRibbonPeriods=[];
+    signwellRibbonLastFrame=0;
+    return;
+  }
+  if(reduceMotion()){
+    signwellRibbonTracks.forEach((track,i)=>track.style.transform=`translate3d(${i?-76:-24}px,0,0)`);
+    signwellRibbonLastFrame=0;
+    return;
+  }
+
+  const cfg=swRibbonConfig();
+  const dt=Math.min(.05,Math.max(.001,signwellRibbonLastFrame?(now-signwellRibbonLastFrame)/1000:.016));
+  signwellRibbonLastFrame=now;
+
+  /* No acceleration, braking, reverse impulse, or scroll-linked color mutation. */
+  signwellRibbonPhase+=cfg.speed*dt;
+  applySignwellRibbonTransform();
+  signwellRibbonRAF=requestAnimationFrame(stepSignwellRibbon);
+}
+
+function onSignwellRibbonResize(){
+  const ribbon=prepareSignwellRibbonTracks();
+  if(!ribbon)return;
+  applySignwellRibbonTransform();
+  if(!signwellRibbonRAF&&!reduceMotion())signwellRibbonRAF=requestAnimationFrame(stepSignwellRibbon);
+}
+
+function initSignwellRibbonFX(){
+  const ribbon=prepareSignwellRibbonTracks();
+  if(!ribbon)return;
+  applySignwellRibbonTransform();
+  if(!reduceMotion()&&!signwellRibbonRAF){
+    signwellRibbonLastFrame=performance.now();
+    signwellRibbonRAF=requestAnimationFrame(stepSignwellRibbon);
+  }
+  if(signwellRibbonBound)return;
+  signwellRibbonBound=true;
+  /* Deliberately no scroll listener: the ribbon is an independent ambient animation. */
+  addEventListener('resize',onSignwellRibbonResize,{passive:true});
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize',onSignwellRibbonResize,{passive:true});
+  }
+}
+
+
+function initHomeScrollScene(){
+  const scene=$('.home-scroll-scene');
+  if(!scene)return;
+  requestAnimationFrame(()=>scene.classList.add('home-fx-ready'));
+
+  const lowMotion=reduceMotion() || matchMedia('(pointer:coarse)').matches;
+  if(lowMotion){
+    const root=document.documentElement.style;
+    root.setProperty('--home-hero-y','0px');
+    root.setProperty('--home-card-y','0px');
+    root.setProperty('--home-hero-opacity','1');
+    root.setProperty('--home-next-y','0px');
+    root.setProperty('--home-next-opacity','1');
+    return;
+  }
+
+  queueHomeScrollFX();
+  if(!homeFXBound){
+    homeFXBound=true;
+    addEventListener('scroll',queueHomeScrollFX,{passive:true});
+    addEventListener('resize',queueHomeScrollFX,{passive:true});
+  }
+}
+
+/* Restore native scrolling for smoothness. */
+const SoftWheel={
+  reset(){}
+};
+
+
+
 function renderHome(){
   const latest=articles.slice(0,9);
   app.innerHTML=`<div class="shell">
-    <section class="hero">
-      <div>
-        <div class="eyebrow"><i></i>${escapeHTML(t('homeEyebrow'))}</div>
-        <h1>${escapeHTML(t('homeTitle1'))}<br>${escapeHTML(t('homeTitle2'))}</h1>
-        <p class="hero-sub">${escapeHTML(t('homeSubtitle'))}</p>
-        <a class="scroll-cue" href="#daily" data-scroll="daily"><i></i><span>向下閱讀最新文章</span></a>
-      </div>
-      <aside class="hero-card glass lightcard sheen">${glassLayers}
-        <b>${escapeHTML(t('homeCardTitle'))}</b>
-        <p>${escapeHTML(t('homeCardBody'))}</p>
-        <div class="tiny">SIGN WELL · 欣緯生醫</div>
-      </aside>
-    </section>
-    <section class="section" id="daily">
+    <div class="sw-home-visual-zone sw-origin-hero" data-sw-origin-hero>
+      <canvas class="sw-origin-canvas" data-sw-origin-canvas aria-hidden="true"></canvas>
+      <div class="sw-origin-wash" aria-hidden="true"></div>
+      <section class="hero home-scroll-scene sw-origin-content">
+        <div class="home-hero-copy">
+          <div class="eyebrow"><i></i>${escapeHTML(t('homeEyebrow'))}</div>
+          <h1>${escapeHTML(t('homeTitle1'))}<br>${escapeHTML(t('homeTitle2'))}</h1>
+          <p class="hero-sub">${escapeHTML(t('homeSubtitle'))}</p>
+        </div>
+        <aside class="sw-origin-note" aria-label="SIGN WELL 主頁介紹">
+          <b>${escapeHTML(t('homeCardTitle'))}</b>
+          <p>${escapeHTML(t('homeCardBody'))}</p>
+        </aside>
+      </section>
+      <a class="sw-origin-scroll" href="#daily" data-scroll="daily" aria-label="向下閱讀最新文章"><span>SCROLL TO EXPLORE</span><i></i></a>
+    </div>
+    <section class="section home-next-stage" id="daily">
       <div class="section-head">
         <div><p>${escapeHTML(t('dailyEyebrow'))}</p><h2>${escapeHTML(t('dailyTitle'))}</h2></div>
         <p>${escapeHTML(t('dailyDescription'))}</p>
@@ -786,7 +1010,7 @@ function renderHome(){
       ${ready?`<div class="article-grid">${latest.length?latest.map(articleCard).join(''):'<div class="empty">還沒有文章。發布第一篇之後，它會出現在這裡。</div>'}</div>`:skeletonGrid()}
     </section>
   </div>`;
-  bindArticleCards();bindScrollCue();initReveal();
+  bindArticleCards();bindScrollCue();initReveal();initHomeScrollScene();initSignwellRibbonFX();window.SignWellOriginHero?.mount?.();
 }
 
 function renderTopics(){
@@ -1616,7 +1840,14 @@ function swUpdateArticleMeta(a){
 async function renderArticle(slug){
   swArticleFontDock()?.remove();
   const a=await getFullArticle(slug);
-  if(!a){if(window.SignWellErrors?.renderInto){window.SignWellErrors.renderInto(app,new Error('文章可能已由 CMS 刪除、尚未公開，或網址已失效。'),{surface:'PUB',status:404,errorCode:'SW-PUB-404-ARTICLE-NOT-FOUND',token:'ARTICLE-NOT-FOUND',title:'這篇文章已不存在',message:'目前網址沒有對應的公開文章。',module:'article-renderer',action:'renderArticle',homeUrl:'https://980510linz.github.io/signwell.com/',retryable:false});}else{document.title='404 · SIGN WELL';app.innerHTML='<div class="shell"><section class="empty"><strong>404 · 這篇文章已不存在</strong></section></div>';}return}
+  if(!a){
+    if(window.SignWellErrors?.renderInto){
+      window.SignWellErrors.renderInto(app,new Error('文章可能已由 CMS 刪除、尚未公開，或網址已失效。'),{surface:'PUB',status:404,errorCode:'SW-PUB-404-ARTICLE-NOT-FOUND',token:'ARTICLE-NOT-FOUND',title:'這篇文章已不存在',message:'目前網址沒有對應的公開文章。',module:'article-renderer',action:'renderArticle',homeUrl:'https://980510linz.github.io/signwell.com/',retryable:false});
+    }else{
+      document.title='404 · SIGN WELL';app.innerHTML='<div class="shell"><section class="empty" role="status"><strong>404 · 這篇文章已不存在</strong></section></div>';
+    }
+    return;
+  }
   const html=renderContent(a),wrap=document.createElement('div');wrap.innerHTML=html;
   const heads=[...wrap.querySelectorAll('h2')].map(h=>({id:h.id,text:h.textContent}));
   const age=swArticleAgeDays(a),updated=swDisplayDate(a.updatedAt||a.publishedAt),published=swDisplayDate(a.publishedAt);
@@ -1631,6 +1862,7 @@ async function renderArticle(slug){
         ${updated?`<span class="sw-updated">更新 ${escapeHTML(updated)}</span>`:''}
         <span>約 ${readingTime(a)} ${escapeHTML(t('minutesReadSuffix'))}</span>
       </div>
+      ${window.SignWellArticleIdentity?.chipHTML?.(a)||''}
       <div class="article-actions"><button class="pillbtn" id="shareArticle">${escapeHTML(t('shareLabel'))}</button><button class="pillbtn" id="copyArticle">${iconSvg('copy')}${escapeHTML(t('copyLinkLabel'))}</button></div>
       <div class="sw-reader-tools"><button id="continueArticle">使用其他裝置閱讀</button><button id="emailSelfArticle">寄給自己</button></div>
       <div class="sw-font-dock" id="swArticleFontDock" data-size="small" role="group" aria-label="文章字級">
@@ -1642,6 +1874,7 @@ async function renderArticle(slug){
     </header>
     ${age>365?`<div class="sw-stale-note">這篇文章最後更新於 ${escapeHTML(updated||a.updatedAt||a.publishedAt||'較早時間')}，已超過一年。醫學資訊可能已有新的研究或指引，請搭配最新專業資料判讀。</div>`:''}
     ${a.cover?`<div class="article-cover"><img loading="eager" fetchpriority="high" decoding="async" src="${escapeHTML(a.cover)}" alt=""></div>`:defaultCoverMarkup(a,true)}
+    ${swSummary10sHTML(a)}
     ${swEvidenceSnapshotHTML(a)}
     <div class="article-layout">
       <div class="sw-article-main"><div class="article-body">${html}</div>${swArticleTrustHTML(a)}</div>
@@ -1653,7 +1886,8 @@ async function renderArticle(slug){
   $$('[data-related]').forEach(el=>{const open=()=>goto('article/'+encodeURIComponent(el.dataset.related));el.onclick=open;el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}}});
   const shareUrl=articleUrl(a.slug);
   $('#copyArticle').onclick=()=>copyText(shareUrl);
-  $('#shareArticle').onclick=async()=>{
+  const identityBound=window.SignWellArticleIdentity?.bindArticle?.(a,{shareButton:$('#shareArticle'),identityButton:document.querySelector('[data-sw-id-open]')});
+  if(!identityBound)$('#shareArticle').onclick=async()=>{
     const shareText=`我在欣緯生醫看到了一篇超棒的文章：${a.title||'SIGN WELL 文章'}`;
     try{
       if(navigator.share)await navigator.share({title:shareText,text:shareText,url:shareUrl});
@@ -1688,9 +1922,11 @@ function bindScrollCue(){
 /* ---------- render orchestration ---------- */
 async function paint(){
   const r=route();
+  try{
   document.documentElement.classList.toggle('article-reading',r.page==='article');
   document.body.classList.toggle('article-reading',r.page==='article');
   if(r.page!=='article')swDismissArticleFontDock();
+  document.body.classList.toggle('home-glass-focus',r.page==='home');
   setNav(routeIndex(r));
   if(r.page==='home')renderHome();
   else if(r.page==='topics')renderTopics();
@@ -1702,12 +1938,22 @@ async function paint(){
   else await renderArticle(r.slug);
 
   trackRouteView(r);
+  }catch(err){
+    console.error('SIGN WELL public render failure',err);
+    if(window.SignWellErrors?.renderInto){
+      window.SignWellErrors.renderInto(app,err,{surface:'PUB',module:'public-renderer',action:r.page||'render',homeUrl:'https://980510linz.github.io/signwell.com/'});
+      return;
+    }
+    throw err;
+  }
 }
 
 async function render(){
   enforceFooterContact();
   await paint();
   window.scrollTo({top:0,behavior:'auto'});
+  SoftWheel?.reset?.();
+  queueHomeScrollFX();
   if(reduceMotion())return;
   app.classList.remove('page-in-fast');
   void app.offsetWidth;
@@ -2689,7 +2935,7 @@ function initPressFX(){
       b.classList.remove('jelly');void b.offsetWidth;b.classList.add('jelly');
       setTimeout(()=>b.classList.remove('jelly'),600);
     }
-    if(lite()||reduceMotion())return;
+    if(lite()||reduceMotion()||document.body.classList.contains('home-glass-focus'))return;
     const r=b.getBoundingClientRect(),size=Math.max(r.width,r.height)*2.1;
     const ink=document.createElement('span');
     ink.className='ripple';

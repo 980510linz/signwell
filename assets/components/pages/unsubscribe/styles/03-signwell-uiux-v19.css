@@ -1,0 +1,153 @@
+/* unsubscribe style component 03 · signwell-uiux-v19 */
+/* SIGN WELL Public · UI/UX refinement v19 · 2026-09-13 */
+:root{
+  --sw-blue:#78b5f7;
+  --sw-blue-deep:#4d8fd6;
+  --sw-blue-pale:#eaf4ff;
+  --sw-pink:#f2d7e5;
+  --sw-pink-pale:#fdf2f7;
+  --sw-glass:rgba(255,255,255,.66);
+  --sw-glass-strong:rgba(255,255,255,.80);
+  --sw-line:rgba(255,255,255,.88);
+  --sw-shadow:0 18px 54px rgba(55,94,132,.10),0 3px 12px rgba(55,94,132,.05);
+  --sw-shadow-hover:0 28px 72px rgba(55,94,132,.15),0 8px 24px rgba(55,94,132,.07);
+  --sw-ease:cubic-bezier(.16,1,.3,1);
+  --sw-spring:cubic-bezier(.22,1.35,.38,1);
+}
+html{background:#f5f9fe}
+body{
+  background:
+    radial-gradient(56rem 40rem at -8% -4%,rgba(255,255,255,.96),transparent 62%),
+    radial-gradient(54rem 38rem at 108% 8%,rgba(212,232,255,.84),transparent 64%),
+    radial-gradient(38rem 30rem at 10% 105%,rgba(242,215,229,.45),transparent 66%),
+    linear-gradient(155deg,#fcfeff 0%,#f5f9fe 52%,#edf4fc 100%)!important;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:-5;pointer-events:none;
+  background:
+    radial-gradient(24rem 24rem at 78% 18%,rgba(255,255,255,.55),transparent 70%),
+    radial-gradient(20rem 20rem at 20% 74%,rgba(217,235,255,.34),transparent 72%);
+}
+.ambient{opacity:.72!important;filter:blur(88px) saturate(118%)!important}
+.orb.a{background:radial-gradient(circle,rgba(134,190,250,.42),transparent 68%)!important}
+.orb.b{background:radial-gradient(circle,rgba(219,236,255,.58),transparent 68%)!important}
+.orb.c{background:radial-gradient(circle,rgba(242,215,229,.32),transparent 68%)!important}
+.orb.d{background:radial-gradient(circle,rgba(178,213,250,.28),transparent 70%)!important}
+.grain{opacity:.055!important}
+
+/* cleaner Apple-like glass */
+.glass,.hero-card,.article-card,.topic-card,.person-card,.share-card,.newsletter-card,
+.about-manifesto,.about-value,.about-team-card,.toc,.searchbox,.idle-subscribe-card,
+.newsletter-flow-card,.newsletter-terms-card,.share-sheet{
+  border:1px solid rgba(255,255,255,.82)!important;
+  background:linear-gradient(145deg,rgba(255,255,255,.72),rgba(242,248,255,.46))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.98),inset 0 -1px 0 rgba(110,146,182,.045),var(--sw-shadow)!important;
+  backdrop-filter:blur(22px) saturate(148%)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(148%)!important;
+}
+.glass::before{opacity:.88}
+.lightcard::after{opacity:.34!important;transition:opacity .28s ease!important}
+.lightcard:hover::after{opacity:.62!important}
+
+/* cards: smaller motion, better hierarchy */
+.article-card,.topic-card,.person-card,.about-value,.about-team-card{
+  transform:translateZ(0);
+  transition:transform .42s var(--sw-ease),box-shadow .42s var(--sw-ease),border-color .32s ease,background .32s ease!important;
+  contain:layout paint style;
+}
+@media (hover:hover) and (pointer:fine){
+  .article-card:hover,.topic-card:hover,.person-card:hover,.about-value:hover,.about-team-card:hover{
+    transform:translate3d(0,-4px,0)!important;
+    box-shadow:var(--sw-shadow-hover)!important;
+    border-color:rgba(255,255,255,.96)!important;
+  }
+}
+
+/* buttons and controls */
+button,.pillbtn,.softbtn,.iconbtn,.backlink,.newsletter-submit,.share-copy{
+  transition:transform .26s var(--sw-spring),box-shadow .3s var(--sw-ease),background .3s ease,border-color .3s ease,opacity .2s ease!important;
+  -webkit-font-smoothing:antialiased;
+}
+button:active,.pillbtn:active,.softbtn:active,.iconbtn:active,.backlink:active,.newsletter-submit:active,.share-copy:active{
+  transform:scale(.965)!important;
+}
+:focus-visible{outline:3px solid rgba(77,143,214,.20)!important;outline-offset:3px!important;box-shadow:0 0 0 1px rgba(77,143,214,.52)!important}
+input,textarea,select{transition:border-color .22s ease,box-shadow .22s ease,background .22s ease!important}
+input:focus,textarea:focus,select:focus{border-color:rgba(77,143,214,.34)!important;box-shadow:0 0 0 4px rgba(77,143,214,.08),inset 0 1px 0 rgba(255,255,255,.9)!important}
+
+/* bottom liquid pager */
+
+
+
+
+
+
+
+/* page gesture: make the moving screen feel like a physical sheet */
+#app{transform:translateZ(0);backface-visibility:hidden;will-change:auto}
+body.page-route-gesture #app,body.page-route-fx #app{will-change:transform,opacity}
+body.page-route-gesture .brand-top,body.page-route-fx .brand-top,
+body.page-route-gesture .top-actions,body.page-route-fx .top-actions{will-change:transform,opacity}
+
+/* reading surface */
+.article-body{max-width:70ch!important;line-height:1.95!important;letter-spacing:.005em}
+.article-body p{margin-bottom:1.24em}
+.article-body h2{scroll-margin-top:96px}
+.article-body img,.article-cover img{box-shadow:0 18px 50px rgba(49,83,117,.09)}
+.toc{border-radius:22px!important}
+
+/* Newsletter polish */
+.newsletter-card{border-radius:36px!important;overflow:hidden}
+.newsletter-card h1{letter-spacing:-.05em!important}
+.newsletter-form{border:1px solid rgba(255,255,255,.84)!important;background:rgba(255,255,255,.54)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.98),0 12px 30px rgba(60,100,140,.07)!important}
+.newsletter-consent,.newsletter-note{color:#718396!important}
+
+/* UX: avoid painting far-below content until close to viewport */
+.article-card,.topic-card,.about-value,.about-team-card{content-visibility:auto;contain-intrinsic-size:280px}
+
+/* darker theme stays readable but keeps the blue/pink optical tint */
+body.dark{
+  --sw-line:rgba(196,222,245,.12);
+  background:radial-gradient(56rem 44rem at 100% 0%,rgba(42,78,110,.24),transparent 62%),radial-gradient(42rem 32rem at 4% 100%,rgba(90,49,72,.12),transparent 68%),linear-gradient(155deg,#111a23,#15232e 50%,#111c25)!important;
+}
+body.dark .glass,body.dark .article-card,body.dark .topic-card,body.dark .newsletter-card{
+  background:linear-gradient(145deg,rgba(34,52,68,.68),rgba(20,35,48,.48))!important;
+  border-color:rgba(192,220,244,.10)!important;
+  box-shadow:inset 0 1px 0 rgba(205,230,250,.08),0 22px 54px rgba(0,0,0,.18)!important;
+}
+
+/* performance while finger is moving */
+body.pager-dragging .ambient,body.page-route-gesture .ambient{filter:blur(64px) saturate(105%)!important;opacity:.58!important}
+body.pager-dragging .cursor-glow,body.page-route-gesture .cursor-glow,
+body.pager-dragging .sheen-layer,body.page-route-gesture .sheen-layer,
+body.pager-dragging .lightcard::after,body.page-route-gesture .lightcard::after{opacity:0!important;animation:none!important}
+body.pager-dragging .glass,body.page-route-gesture .glass{backdrop-filter:blur(15px) saturate(130%)!important;-webkit-backdrop-filter:blur(15px) saturate(130%)!important}
+body.pager-dragging .article-card,body.page-route-gesture .article-card,
+body.pager-dragging .topic-card,body.page-route-gesture .topic-card{box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 8px 24px rgba(55,94,132,.07)!important}
+
+/* mobile Safari: preserve visual richness without fixed-background jank */
+@media(max-width:760px){
+  body{background-attachment:scroll!important}
+  body::before{position:absolute}
+  .ambient{filter:blur(72px) saturate(112%)!important;opacity:.64!important}
+  .glass,.hero-card,.article-card,.topic-card,.person-card,.share-card,.newsletter-card,
+  .about-manifesto,.about-value,.about-team-card,.toc,.searchbox,.idle-subscribe-card,
+  .newsletter-flow-card,.newsletter-terms-card,.share-sheet{
+    backdrop-filter:blur(18px) saturate(140%)!important;
+    -webkit-backdrop-filter:blur(18px) saturate(140%)!important;
+  }
+  .article-card,.topic-card,.person-card,.about-value,.about-team-card{transform:none!important}
+  button,.pillbtn,.softbtn,.iconbtn,.backlink,.newsletter-submit,.share-copy{min-height:44px}
+  
+  .newsletter-card{border-radius:30px!important}
+}
+@media(max-width:430px){
+  .grain{display:none!important}
+  .cursor-glow{display:none!important}
+  .ambient{opacity:.56!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .article-card,.topic-card,.person-card,.about-value,.about-team-card,button{transition:none!important}
+  .ambient .orb{animation:none!important}
+}
+body.lite .article-card,body.lite .topic-card,body.lite .newsletter-card{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(250,253,255,.90)!important}

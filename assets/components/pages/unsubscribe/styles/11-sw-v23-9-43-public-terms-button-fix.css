@@ -1,0 +1,15 @@
+/* unsubscribe style component 11 · sw-v23-9-43-public-terms-button-fix */
+/* SIGN WELL v23.9.43 · subscription legal consent CTA contrast */
+#newsletterTermsOverlay .newsletter-terms-agree.is-ready,
+.newsletter-terms-overlay .newsletter-terms-agree.is-ready,
+.newsletter-terms-agree.is-ready{
+  color:#101216!important;
+  -webkit-text-fill-color:#101216!important;
+  text-shadow:none!important;
+}
+body.dark #newsletterTermsOverlay .newsletter-terms-agree.is-ready,
+body.dark .newsletter-terms-overlay .newsletter-terms-agree.is-ready,
+body.dark .newsletter-terms-agree.is-ready{
+  color:#101216!important;
+  -webkit-text-fill-color:#101216!important;
+}

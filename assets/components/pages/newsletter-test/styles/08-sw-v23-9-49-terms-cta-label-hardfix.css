@@ -1,0 +1,53 @@
+/* newsletter-test style component 08 · sw-v23-9-49-terms-cta-label-hardfix */
+/* SIGN WELL v23.9.49 · Safari-proof legal CTA label.
+   Draw the label in the top pseudo layer so it cannot be covered by progress/sheens. */
+#newsletterTermsOverlay .newsletter-terms-agree,
+.newsletter-terms-overlay .newsletter-terms-agree,
+.newsletter-terms-agree{
+  position:relative!important;
+  isolation:isolate!important;
+  color:transparent!important;
+  -webkit-text-fill-color:transparent!important;
+}
+#newsletterTermsOverlay .newsletter-terms-agree::before,
+.newsletter-terms-overlay .newsletter-terms-agree::before,
+.newsletter-terms-agree::before{z-index:0!important}
+#newsletterTermsOverlay .newsletter-terms-agree::after,
+.newsletter-terms-overlay .newsletter-terms-agree::after,
+.newsletter-terms-agree::after{
+  content:"請滑至底部"!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:2147483646!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:0 14px!important;
+  background:none!important;
+  animation:none!important;
+  transform:none!important;
+  opacity:1!important;
+  pointer-events:none!important;
+  color:#101216!important;
+  -webkit-text-fill-color:#101216!important;
+  font:800 15px/1.2 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang TC","Noto Sans TC",sans-serif!important;
+  letter-spacing:.01em!important;
+  text-shadow:none!important;
+  mix-blend-mode:normal!important;
+  white-space:nowrap!important;
+}
+#newsletterTermsOverlay .newsletter-terms-agree.is-ready::after,
+.newsletter-terms-overlay .newsletter-terms-agree.is-ready::after,
+.newsletter-terms-agree.is-ready::after{content:"我同意"!important}
+#newsletterTermsOverlay .newsletter-terms-agree-label,
+.newsletter-terms-overlay .newsletter-terms-agree-label,
+.newsletter-terms-agree-label{
+  visibility:hidden!important;
+  opacity:0!important;
+}
+body.dark #newsletterTermsOverlay .newsletter-terms-agree::after,
+body.dark .newsletter-terms-overlay .newsletter-terms-agree::after,
+body.dark .newsletter-terms-agree::after{
+  color:#101216!important;
+  -webkit-text-fill-color:#101216!important;
+}

@@ -1,0 +1,24 @@
+/* unsubscribe style component 06 · swPublicV22MobileExperiencePatch */
+/* v22 mobile finishing pass: dynamic/detail surfaces */
+@media(max-width:760px){
+  .topic-detail-head{display:block!important;margin-bottom:18px!important}
+  .topic-detail-head>div+div,.topic-detail-head>.topic-count{margin-top:10px!important}
+  .topic-detail-badge{font-size:10px!important;min-height:32px!important;padding:0 10px!important;border-radius:999px!important}
+  .default-cover{border-radius:21px!important;min-height:220px!important}
+  .article-card .default-cover{min-height:0!important;aspect-ratio:16/9!important}
+  .empty{padding:28px 18px!important;border-radius:20px!important;font-size:12px!important;line-height:1.7!important}
+  .toast{left:12px!important;right:12px!important;bottom:calc(env(safe-area-inset-bottom) + 88px)!important;width:auto!important;max-width:none!important;border-radius:15px!important;font-size:11px!important}
+  .idle-subscribe{left:10px!important;right:10px!important;width:auto!important;bottom:calc(env(safe-area-inset-bottom) + 84px)!important}
+  .idle-subscribe-card{padding:15px!important;border-radius:21px!important}
+  .idle-subscribe-title{font-size:19px!important;line-height:1.2!important}
+  .idle-subscribe-copy{font-size:11px!important;line-height:1.62!important}
+  .idle-subscribe-form{grid-template-columns:1fr!important;gap:7px!important}
+  .idle-subscribe-form input,.idle-subscribe-form button{min-height:48px!important;width:100%!important}
+  .newsletter-flow-overlay{padding:12px!important;align-items:flex-end!important}
+  .newsletter-flow-card{width:100%!important;border-radius:26px!important;padding:24px 18px max(20px,env(safe-area-inset-bottom))!important}
+  .nl-flow-title{font-size:29px!important;line-height:1.08!important;color:var(--sw22-ink)!important;-webkit-text-fill-color:var(--sw22-ink)!important}
+  .nl-flow-copy{font-size:12px!important;line-height:1.7!important;color:var(--sw22-muted)!important}
+  .share-sheet{width:calc(100% - 20px)!important;max-width:none!important;border-radius:24px!important;padding:20px!important}
+  .share-sheet button{min-height:48px!important}
+  .search-foot{display:none!important}
+}

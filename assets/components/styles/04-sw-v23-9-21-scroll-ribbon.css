@@ -1,0 +1,74 @@
+/* Public home component 04 · source id: sw-v23-9-21-scroll-ribbon */
+/* v23.9.21 · Home SIGN WELL scroll ribbon */
+.sw-signwell-ribbon{
+  position:relative;
+  z-index:3;
+  width:100vw;
+  margin-left:calc(50% - 50vw);
+  overflow:hidden;
+  padding:clamp(30px,5.2vw,72px) 0 clamp(38px,6.4vw,88px);
+  pointer-events:none;
+  user-select:none;
+  -webkit-user-select:none;
+  contain:layout paint;
+}
+.sw-signwell-ribbon-track{
+  width:max-content;
+  white-space:nowrap;
+  font-family:var(--font-sans,ui-sans-serif,-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif);
+  font-size:clamp(42px,6.8vw,96px);
+  line-height:.9;
+  font-weight:860;
+  letter-spacing:-.055em;
+  word-spacing:.18em;
+  color:transparent;
+  -webkit-text-fill-color:transparent;
+  background-image:linear-gradient(
+    90deg,
+    #1688ff 0%,
+    #1688ff 31%,
+    #4898ff 38%,
+    #7d9bf0 45%,
+    #ab93dc 52%,
+    #d989c9 60%,
+    #f581b8 68%,
+    #f581b8 100%
+  );
+  background-size:100% 100%;
+  background-repeat:no-repeat;
+  -webkit-background-clip:text;
+  background-clip:text;
+  transform:translate3d(-40px,0,0);
+  will-change:transform;
+  backface-visibility:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+body.dark .sw-signwell-ribbon-track{
+  background-image:linear-gradient(
+    90deg,
+    #5ab0ff 0%,
+    #5ab0ff 31%,
+    #77b7ff 38%,
+    #9ca9f2 46%,
+    #c59adf 54%,
+    #e88bc8 62%,
+    #ff8fbe 69%,
+    #ff8fbe 100%
+  );
+}
+@media(max-width:700px){
+  .sw-signwell-ribbon{
+    padding:28px 0 48px;
+  }
+  .sw-signwell-ribbon-track{
+    font-size:clamp(40px,12.8vw,58px);
+    letter-spacing:-.06em;
+    word-spacing:.12em;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .sw-signwell-ribbon-track{
+    transform:translate3d(-24px,0,0)!important;
+    will-change:auto;
+  }
+}

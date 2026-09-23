@@ -1,0 +1,163 @@
+/* unsubscribe style component 04 · signwell-glass-v20 */
+/* SIGN WELL Public · Optical Liquid Glass v20 · 2026-09-13 */
+:root{
+  --sw-glass-blue:rgba(153,205,255,.22);
+  --sw-glass-pink:rgba(244,207,228,.16);
+  --sw-glass-white:rgba(255,255,255,.78);
+  --sw-glass-edge:rgba(255,255,255,.96);
+  --sw-glass-depth:0 28px 70px rgba(50,91,132,.12),0 8px 22px rgba(50,91,132,.055);
+  --sw-glass-depth-hover:0 36px 92px rgba(50,91,132,.16),0 10px 28px rgba(50,91,132,.07);
+}
+
+/* Optical material: transparent body + blue/pink chromatic refraction. */
+body:not(.lite) .glass,
+body:not(.lite) .hero-card,
+body:not(.lite) .article-card,
+body:not(.lite) .topic-card,
+body:not(.lite) .person-card,
+body:not(.lite) .share-card,
+body:not(.lite) .newsletter-card,
+body:not(.lite) .about-manifesto,
+body:not(.lite) .about-value,
+body:not(.lite) .about-team-card,
+body:not(.lite) .toc,
+body:not(.lite) .searchbox,
+body:not(.lite) .idle-subscribe-card,
+body:not(.lite) .newsletter-flow-card,
+body:not(.lite) .newsletter-terms-card,
+body:not(.lite) .share-sheet{
+  background:
+    radial-gradient(135% 100% at 8% -14%,rgba(255,255,255,.96) 0%,rgba(255,255,255,.46) 28%,transparent 56%),
+    radial-gradient(72% 60% at 102% 3%,var(--sw-glass-blue),transparent 68%),
+    radial-gradient(62% 58% at -6% 103%,var(--sw-glass-pink),transparent 72%),
+    linear-gradient(148deg,rgba(255,255,255,.60),rgba(241,248,255,.34))!important;
+  border:1px solid rgba(255,255,255,.86)!important;
+  box-shadow:
+    inset 0 1.2px 0 var(--sw-glass-edge),
+    inset 1px 0 0 rgba(255,255,255,.46),
+    inset 0 -1px 0 rgba(105,148,188,.075),
+    inset -1px 0 0 rgba(244,207,228,.055),
+    var(--sw-glass-depth)!important;
+  backdrop-filter:blur(26px) saturate(168%) brightness(1.025)!important;
+  -webkit-backdrop-filter:blur(26px) saturate(168%) brightness(1.025)!important;
+}
+
+/* Stronger refracted rim without adding an extra DOM layer. */
+body:not(.lite) .glass::before{
+  opacity:1!important;
+  background:linear-gradient(145deg,
+    rgba(255,255,255,1) 0%,
+    rgba(255,255,255,.68) 18%,
+    rgba(174,216,255,.48) 40%,
+    rgba(246,211,230,.30) 64%,
+    rgba(255,255,255,.82) 84%,
+    rgba(255,255,255,1) 100%)!important;
+}
+body:not(.lite) .lightcard::after{
+  background:
+    radial-gradient(430px circle at var(--px,50%) var(--py,18%),rgba(255,255,255,.88),rgba(255,255,255,.16) 34%,rgba(174,216,255,.08) 51%,transparent 68%)!important;
+  mix-blend-mode:screen;
+  opacity:.42!important;
+}
+@media(hover:hover) and (pointer:fine){
+  body:not(.lite) .article-card:hover,
+  body:not(.lite) .topic-card:hover,
+  body:not(.lite) .person-card:hover,
+  body:not(.lite) .about-value:hover,
+  body:not(.lite) .about-team-card:hover{
+    box-shadow:
+      inset 0 1.2px 0 #fff,
+      inset 0 -1px 0 rgba(105,148,188,.08),
+      var(--sw-glass-depth-hover)!important;
+  }
+  body:not(.lite) .lightcard:hover::after{opacity:.72!important}
+}
+
+/* Glass buttons and inputs behave like thinner material. */
+body:not(.lite) .iconbtn,
+body:not(.lite) .pillbtn,
+body:not(.lite) .softbtn,
+body:not(.lite) .backlink,
+body:not(.lite) .share-copy,
+body:not(.lite) .newsletter-form,
+body:not(.lite) .newsletter-consent,
+body:not(.lite) .newsletter-note{
+  background:
+    radial-gradient(120% 100% at 12% -25%,rgba(255,255,255,.94),transparent 54%),
+    linear-gradient(145deg,rgba(255,255,255,.60),rgba(233,244,255,.32))!important;
+  border-color:rgba(255,255,255,.88)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.98),inset 0 -1px 0 rgba(104,147,187,.07),0 10px 24px rgba(52,91,128,.07)!important;
+  backdrop-filter:blur(18px) saturate(158%)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(158%)!important;
+}
+body:not(.lite) input,
+body:not(.lite) textarea,
+body:not(.lite) select{
+  background:linear-gradient(145deg,rgba(255,255,255,.68),rgba(245,250,255,.48))!important;
+  border-color:rgba(255,255,255,.84)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.98),inset 0 -1px 0 rgba(90,132,170,.05)!important;
+}
+
+/* Main navigation is the thickest glass on Public. */
+
+
+
+/* Fixed chrome gets a subtle glass wafer when content scrolls beneath it. */
+body.is-scrolled .brand-top,
+body:not(.lite) .top-actions .iconbtn{
+  background:linear-gradient(145deg,rgba(255,255,255,.66),rgba(235,246,255,.34))!important;
+  border:1px solid rgba(255,255,255,.82)!important;
+  backdrop-filter:blur(20px) saturate(160%)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(160%)!important;
+}
+
+/* During gesture: reduce optical stack first, not the animation. */
+body.pager-dragging .glass,
+body.page-route-gesture .glass,
+body.page-route-fx .glass{
+  backdrop-filter:blur(13px) saturate(128%)!important;
+  -webkit-backdrop-filter:blur(13px) saturate(128%)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.94),0 8px 24px rgba(50,91,132,.07)!important;
+}
+body.pager-dragging .lightcard::after,
+body.page-route-gesture .lightcard::after,
+body.page-route-fx .lightcard::after{opacity:0!important}
+
+/* Dark material. */
+body.dark:not(.lite) .glass,
+body.dark:not(.lite) .article-card,
+body.dark:not(.lite) .topic-card,
+body.dark:not(.lite) .newsletter-card{
+  background:
+    radial-gradient(120% 95% at 8% -12%,rgba(202,226,246,.12),transparent 54%),
+    radial-gradient(70% 55% at 100% 0%,rgba(72,135,188,.10),transparent 68%),
+    linear-gradient(145deg,rgba(36,55,71,.60),rgba(18,34,47,.42))!important;
+  border-color:rgba(197,224,246,.13)!important;
+  box-shadow:inset 0 1px 0 rgba(218,237,251,.10),inset 0 -1px 0 rgba(0,0,0,.08),0 24px 62px rgba(0,0,0,.20)!important;
+}
+
+/* iOS / coarse pointers: maintain refraction, lower realtime blur cost. */
+@media(max-width:760px),(pointer:coarse){
+  body:not(.lite) .glass,
+  body:not(.lite) .hero-card,
+  body:not(.lite) .article-card,
+  body:not(.lite) .topic-card,
+  body:not(.lite) .person-card,
+  body:not(.lite) .share-card,
+  body:not(.lite) .newsletter-card,
+  body:not(.lite) .about-manifesto,
+  body:not(.lite) .about-value,
+  body:not(.lite) .about-team-card,
+  body:not(.lite) .toc,
+  body:not(.lite) .searchbox{
+    backdrop-filter:blur(18px) saturate(148%)!important;
+    -webkit-backdrop-filter:blur(18px) saturate(148%)!important;
+  }
+  
+}
+@media(max-width:430px){
+  body:not(.lite) .lightcard::after{opacity:.20!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .lightcard::after,.sheen-layer{transition:none!important;animation:none!important}
+}

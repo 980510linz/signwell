@@ -1,0 +1,40 @@
+/* share style component 06 · sw-v23-9-49-terms-cta-label-hardfix */
+/* SIGN WELL v23.9.49 · Safari-proof legal CTA: no overlay pseudo layers. */
+#newsletterTermsOverlay .newsletter-terms-agree,
+.newsletter-terms-overlay .newsletter-terms-agree,
+.newsletter-terms-agree{
+  position:relative!important;
+  color:#101216!important;
+  -webkit-text-fill-color:#101216!important;
+  text-shadow:none!important;
+}
+#newsletterTermsOverlay .newsletter-terms-agree::before,
+#newsletterTermsOverlay .newsletter-terms-agree::after,
+.newsletter-terms-overlay .newsletter-terms-agree::before,
+.newsletter-terms-overlay .newsletter-terms-agree::after,
+.newsletter-terms-agree::before,
+.newsletter-terms-agree::after{
+  content:none!important;
+  display:none!important;
+  animation:none!important;
+}
+#newsletterTermsOverlay .newsletter-terms-agree-label,
+.newsletter-terms-overlay .newsletter-terms-agree-label,
+.newsletter-terms-agree-label{
+  position:relative!important;
+  z-index:2!important;
+  display:inline-block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  color:#101216!important;
+  -webkit-text-fill-color:#101216!important;
+  text-shadow:none!important;
+  mix-blend-mode:normal!important;
+}
+body.dark #newsletterTermsOverlay .newsletter-terms-agree,
+body.dark .newsletter-terms-overlay .newsletter-terms-agree,
+body.dark .newsletter-terms-agree,
+body.dark .newsletter-terms-agree-label{
+  color:#101216!important;
+  -webkit-text-fill-color:#101216!important;
+}

@@ -1,4 +1,4 @@
-/* SIGN WELL Error Experience · v24.10.0
+/* SIGN WELL Error Experience · v24.24.0
  * Shared by Public and CMS. This surface never treats UI text as authority.
  */
 (()=>{
@@ -155,9 +155,15 @@ function installGlobal(ctx={}){
       const tag=String(ev.target.tagName||'').toLowerCase();
       if(tag==='script'||tag==='link'){
         const url=clean(ev.target.src||ev.target.href||'',220);
-        let critical=Boolean(ev.target.dataset?.swCritical);
-        try{if(url)critical=critical||new URL(url,location.href).origin===location.origin}catch(_){}
+        const declaredOptional=Boolean(ev.target.dataset?.swOptional);
+        const declaredCritical=Boolean(ev.target.dataset?.swCritical);
+        const visualOptional=/\/assets\/signwell-motion-v[^/?#]+\.js(?:[?#]|$)/i.test(url);
+        const stylesheet=tag==='link'&&String(ev.target.rel||'').toLowerCase()==='stylesheet';
+        const optional=declaredOptional||visualOptional||stylesheet;
+        const critical=declaredCritical&&!optional;
         if(critical)show(new Error(`必要資產載入失敗：${url||tag}`),{...ctx,status:502,token:'ASSET-LOAD',module:'asset-loader'});
+        else if(visualOptional)console.warn('[SIGN WELL] Optional visual asset failed; continuing without motion:',url||tag);
+        else console.warn('[SIGN WELL] Non-critical asset failed; page kept usable:',url||tag);
       }
       return;
     }

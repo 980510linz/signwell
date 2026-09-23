@@ -4,7 +4,7 @@
 
 /* ---------- helpers ---------- */
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],app=$('#app');
-const raf=requestAnimationFrame;
+const raf=cb=>requestAnimationFrame(cb);
 const reduceMotion=()=>matchMedia('(prefers-reduced-motion:reduce)').matches;
 const lite=()=>document.body.classList.contains('lite');
 
@@ -678,7 +678,7 @@ function articleUrl(slug){const u=new URL('index.html',new URL('./',location.hre
 function setNav(index,instant=false){Slider.set(index,instant)}
 
 /* ---------- view builders ---------- */
-const glassLayers='<span class="sheen-layer"></span>';
+const glassLayers='<span class="sheen-layer"></span><span class="edge-light" aria-hidden="true"></span>';
 
 
 
@@ -841,23 +841,53 @@ function renderTopicDetail(slug){
 function renderShare(){
   const url=location.origin+location.pathname.replace(/[^/]*$/,'');
   app.innerHTML=`<div class="shell share-wrap">
-    <section class="share-card glass lightcard sheen">${glassLayers}
-      <div class="share-grid">
-        <div>
-          <div class="eyebrow"><i></i>${escapeHTML(t('shareEyebrow'))}</div>
-          <h1>${escapeHTML(t('shareTitle'))}</h1>
-          <p>${escapeHTML(t('shareSubtitle'))}</p>
-          <div class="share-url"><input id="shareUrl" value="${escapeHTML(url)}" readonly aria-label="網站連結"><button class="primarybtn" id="copySite">複製連結</button></div>
-        </div>
-        <div class="qr-box" id="qrcode"><div class="qr-fallback">正在產生 QR Code…</div></div>
+    <div class="stage3d" id="stage">
+      <div class="stage-glow" id="stageGlow" aria-hidden="true"></div>
+      <div class="stage-shadow" id="stageShadow" aria-hidden="true"></div>
+      <div class="tilt-wrap" id="tiltWrap">
+        <section class="share-card card3d lightcard" id="shareCard">
+          <span class="glass-plate" aria-hidden="true"></span>
+          <span class="edge-light" aria-hidden="true"></span>
+          <div class="share-grid">
+            <div>
+              <div class="eyebrow lift1"><i></i>${escapeHTML(t('shareEyebrow'))}</div>
+              <h1 class="lift3">${escapeHTML(t('shareTitle'))}</h1>
+              <p class="lift2">${escapeHTML(t('shareSubtitle'))}</p>
+              <div class="share-url lift2"><input id="shareUrl" value="${escapeHTML(url)}" readonly aria-label="網站連結"><button class="primarybtn" id="copySite">複製連結</button></div>
+                          </div>
+            <div class="lift3">
+              <div class="qr-stack" id="qrStack">
+                <div class="qr-box" id="qrcode"><div class="qr-fallback">正在產生 QR Code…</div></div>
+                <span class="qr-shield" id="qrShield" aria-hidden="true"></span>
+              </div>
+              <div class="qr-note">請用相機掃描，這張 QR Code 無法長按儲存</div>
+            </div>
+          </div>
+        </section>
       </div>
-    </section>
+    </div>
   </div>`;
   $('#shareUrl').onclick=e=>e.target.select();
-  $('#copySite').onclick=()=>copyText(url);
-  makeQR(url);initReveal();
+  $('#copySite').onclick=async()=>{
+    try{
+      if(navigator.share){
+        await navigator.share({title:t('siteTitle'),url});
+        return;
+      }
+      await copyText(url);
+    }catch(e){
+      if(e?.name==='AbortError')return;
+      await copyText(url);
+      showToast('系統分享不可用，已改為複製連結');
+    }
+  };
+  makeQR(url);
+  initStage3D();
+  initReveal();
 }
 
+/* ---------- QR: rendered as canvas only, and shielded from long-press ---------- */
+let qrGuard=null;
 
 let qrLibPromise=null;
 function ensureQRCodeLib(){
@@ -875,16 +905,103 @@ function ensureQRCodeLib(){
 }
 
 async function makeQR(url){
-  const box=$('#qrcode');
-  if(!box)return;
-  box.innerHTML='<div class="qr-fallback">正在產生 QR Code…</div>';
-  const ok=await ensureQRCodeLib();
-  if(!ok||!window.QRCode){
-    box.innerHTML='<div class="qr-fallback">QR Code 產生器沒有載入。<br>用上方「複製連結」一樣可以分享。</div>';
-    return;
-  }
+  const box=$('#qrcode'),stack=$('#qrStack');
+  qrGuard?.disconnect();
   box.innerHTML='';
-  new QRCode(box,{text:url,width:190,height:190,correctLevel:QRCode.CorrectLevel.M});
+  lockDown(stack);
+  lockDown(box);
+
+  /* qrcodejs swaps in an <img loading="lazy" decoding="async"> once it has a data URL — an <img loading="lazy" decoding="async"> is exactly
+     what iOS offers to save on long-press, so strip it and keep the canvas. */
+  const keepCanvasOnly=()=>{
+    const cv=box.querySelector('canvas');
+    if(cv){
+      cv.style.display='block';
+      cv.setAttribute('aria-label','網站 QR Code');
+      box.querySelectorAll('img').forEach(im=>im.remove());
+    }else{
+      box.querySelectorAll('img').forEach(im=>{im.draggable=false;im.setAttribute('alt','')});
+    }
+  };
+  qrGuard=new MutationObserver(keepCanvasOnly);
+  qrGuard.observe(box,{childList:true,subtree:true,attributes:true,attributeFilter:['style','src']});
+
+  const draw=()=>{
+    new QRCode(box,{text:url,width:190,height:190,correctLevel:QRCode.CorrectLevel.M});
+    keepCanvasOnly();
+    [40,180,600].forEach(ms=>setTimeout(keepCanvasOnly,ms));
+  };
+  if(window.QRCode)return void draw();
+  const ok=await ensureQRCodeLib();
+  if(ok&&window.QRCode){box.innerHTML='';draw()}
+  else box.innerHTML='<div class="qr-fallback">QR Code 產生器沒有載入。<br>用上方「複製連結」一樣可以分享。</div>';
+}
+
+function lockDown(el){
+  if(!el)return;
+  ['contextmenu','dragstart','selectstart'].forEach(ev=>
+    el.addEventListener(ev,e=>{e.preventDefault();return false}));
+}
+
+/* ---------- pointer-driven 3D: tilt, edge light, cast shadow, backlight ---------- */
+function initStage3D(){
+  const stage=$('#stage'),wrap=$('#tiltWrap'),card=$('#shareCard'),
+        shadow=$('#stageShadow'),glow=$('#stageGlow');
+  if(!stage||reduceMotion())return;
+
+  const MAX_Y=lite()?7:15, MAX_X=lite()?6:12;
+  let tX=0,tY=0,cX=0,cY=0,active=false,loop=null,idle=0;
+
+  const aim=(clientX,clientY)=>{
+    const r=stage.getBoundingClientRect();
+    const nx=Math.max(-1,Math.min(1,((clientX-r.left)/r.width)*2-1));
+    const ny=Math.max(-1,Math.min(1,((clientY-r.top)/r.height)*2-1));
+    tY=nx*MAX_Y;
+    tX=-ny*MAX_X;
+    card.style.setProperty('--px',(((clientX-r.left)/r.width)*100).toFixed(1)+'%');
+    card.style.setProperty('--py',(((clientY-r.top)/r.height)*100).toFixed(1)+'%');
+    card.style.setProperty('--ex',(nx*16).toFixed(1)+'px');
+    card.style.setProperty('--ey',(ny*16).toFixed(1)+'px');
+    shadow.style.setProperty('--sx',(-nx*20).toFixed(1)+'px');
+    shadow.style.setProperty('--sy',(-ny*14).toFixed(1)+'px');
+    glow.style.setProperty('--gx',(50+nx*32).toFixed(0)+'%');
+    glow.style.setProperty('--gy',(45+ny*32).toFixed(0)+'%');
+  };
+
+  const rest=()=>{
+    active=false;tX=0;tY=0;
+    card.style.setProperty('--px','50%');
+    card.style.setProperty('--py','22%');
+    card.style.setProperty('--ex','0px');
+    card.style.setProperty('--ey','0px');
+    shadow.style.setProperty('--sx','0px');
+    shadow.style.setProperty('--sy','0px');
+    glow.style.setProperty('--gx','50%');
+    glow.style.setProperty('--gy','45%');
+    run();
+  };
+
+  const frame=()=>{
+    const ease=active?.105:.075;
+    cX+=(tX-cX)*ease;
+    cY+=(tY-cY)*ease;
+    wrap.style.setProperty('--tx',cX.toFixed(3)+'deg');
+    wrap.style.setProperty('--ty',cY.toFixed(3)+'deg');
+    if(!active&&Math.abs(tX-cX)<.02&&Math.abs(tY-cY)<.02&&++idle>4){loop=null;return}
+    loop=raf(frame);
+  };
+  const run=()=>{idle=0;if(!loop)loop=raf(frame)};
+
+  stage.addEventListener('pointerenter',e=>{active=true;aim(e.clientX,e.clientY);run()});
+  stage.addEventListener('pointermove',e=>{active=true;aim(e.clientX,e.clientY);run()},{passive:true});
+  stage.addEventListener('pointerleave',rest);
+  stage.addEventListener('pointerdown',e=>{
+    active=true;stage.setPointerCapture?.(e.pointerId);aim(e.clientX,e.clientY);run();
+  });
+  const lift=e=>{if(e.pointerType!=='mouse')rest()};
+  stage.addEventListener('pointerup',lift);
+  stage.addEventListener('pointercancel',lift);
+  rest();
 }
 
 
@@ -956,8 +1073,9 @@ function ensureNewsletterFlowUI(){
       <div class="nl-flow-stage nl-flow-success">
         <div class="nl-success-check">✓</div>
         <h2 class="nl-flow-title">請查看你的驗證碼</h2>
-        <p class="nl-flow-copy">如果這個 Email 尚未完成訂閱，我們會寄出 6 位數驗證碼。回到目前頁面輸入驗證碼並驗證成功後，才會正式加入 SIGN WELL Letter。</p>
-        <div class="nl-success-sub">SIGN WELL Letter · No spam. Just signal.</div>
+        <p class="nl-flow-copy">6 位數驗證碼已寄出。請回到目前頁面輸入驗證碼，驗證成功後才會正式加入 SIGN WELL Letter。</p>
+        <div class="nl-flow-email nl-flow-email-confirm" data-nl-flow-confirm-email></div>
+        <div class="nl-success-sub">若沒有看到，請一併檢查垃圾郵件／促銷內容。驗證碼 5 分鐘有效，驗證完成前不會收到正式電子報。</div>
         <button class="nl-success-close" type="button">知道了</button>
       </div>
     </div>`;
@@ -982,10 +1100,12 @@ function showNewsletterLoading(email){
   wrap.classList.add('show');
 }
 
-function showNewsletterOptimisticSuccess(){
+function showNewsletterOptimisticSuccess(email){
   ensureNewsletterFlowUI();
   const wrap=document.getElementById('newsletterFlowOverlay');
   if(!wrap)return;
+  const emailEl=wrap.querySelector('[data-nl-flow-confirm-email]');
+  if(emailEl)emailEl.textContent=email||'';
   wrap.classList.add('success','show');
   playNewsletterConfetti();
 }
@@ -1111,7 +1231,7 @@ async function runNewsletterOptimistic4s(email,source='signwell-public'){
   const result=await startNewsletterBackgroundRequest(email,source);
   const floor=Math.max(0,950-(Date.now()-started));
   if(floor)await new Promise(r=>setTimeout(r,floor));
-  showNewsletterOptimisticSuccess();
+  showNewsletterOptimisticSuccess(email);
   try{
     localStorage.setItem('signwell-newsletter-last-result',JSON.stringify({
       ok:true,at:Date.now(),status:result?.status||'pending'
@@ -1223,8 +1343,6 @@ function ensureNewsletterTermsModal(){
     const max=Math.max(1,body.scrollHeight-body.clientHeight);
     const progress=max<=2?1:Math.max(0,Math.min(1,body.scrollTop/max));
     agree.style.setProperty('--terms-progress',progress.toFixed(3));
-    const progressPct=Math.max(0,Math.min(100,progress*100)).toFixed(1)+'%';
-    agree.style.setProperty('background',`linear-gradient(90deg,#e7606b 0%,#cf4150 ${progressPct},rgba(255,255,255,.94) ${progressPct},rgba(255,255,255,.94) 100%)`,'important');
     agree.style.setProperty('color','#101216','important');
     agree.style.setProperty('-webkit-text-fill-color','#101216','important');
     agree.style.setProperty('text-shadow','none','important');
@@ -1238,7 +1356,7 @@ function ensureNewsletterTermsModal(){
   body?.addEventListener('scroll',updateLegalReadGate,{passive:true});
   modal._resetLegalScrollGate=()=>{
     if(body)body.scrollTop=0;
-    if(agree){agree.disabled=true;agree.classList.remove('is-ready');agree.setAttribute('aria-disabled','true');agree.style.setProperty('--terms-progress','0');agree.style.setProperty('background','rgba(255,255,255,.94)','important');agree.style.setProperty('color','#101216','important');agree.style.setProperty('-webkit-text-fill-color','#101216','important');agree.style.setProperty('text-shadow','none','important');const agreeLabel=agree.querySelector('.newsletter-terms-agree-label');if(agreeLabel)agreeLabel.textContent='請滑至底部'}
+    if(agree){agree.disabled=true;agree.classList.remove('is-ready');agree.setAttribute('aria-disabled','true');agree.style.setProperty('--terms-progress','0');agree.style.setProperty('color','#101216','important');agree.style.setProperty('-webkit-text-fill-color','#101216','important');agree.style.setProperty('text-shadow','none','important');const agreeLabel=agree.querySelector('.newsletter-terms-agree-label');if(agreeLabel)agreeLabel.textContent='請滑至底部'}
     requestAnimationFrame(updateLegalReadGate);
   };
 
@@ -1404,9 +1522,9 @@ function renderNewsletter(){
 
       <label class="newsletter-consent" id="newsletterConsentLabel">
         <input id="newsletterConsent" type="checkbox" aria-describedby="newsletterConsentText">
-        <span id="newsletterConsentText">我同意接收 SIGN WELL 電子報與新文章通知，並已閱讀服務條款與隱私權政策。每封信都會提供取消訂閱方式。</span>
+        <span id="newsletterConsentText">我同意接收 SIGN WELL 電子報與新文章通知，並已閱讀服務條款與隱私權政策。送出後需完成 6 位數 Email 驗證；每封信都會提供取消訂閱方式。</span>
       </label>
-      <div class="newsletter-note" style="margin-top:8px">想先查看內容？點選上方同意列即可開啟 <button class="newsletter-legal-open" type="button" id="newsletterLegalOpen">服務條款與隱私權政策</button>。</div>
+      <div class="newsletter-note" style="margin-top:8px">想先查看內容？可開啟 <button class="newsletter-legal-open" type="button" id="newsletterLegalOpen">服務條款與隱私權政策</button>，或閱讀 <a href="privacy.html" class="newsletter-legal-link">完整個資告知</a>。</div>
 
       <div class="newsletter-status" id="newsletterStatus" role="status" aria-live="polite"></div>
       <div class="newsletter-success" id="newsletterSuccess">
@@ -1665,7 +1783,7 @@ async function renderArticle(slug){
   $('#continueArticle').onclick=()=>swOpenContinueQR(a);
   $('#emailSelfArticle').onclick=()=>{const u=encodeURIComponent(swArticleSectionUrl(a.slug,swCurrentSection()));const subject=encodeURIComponent('稍後閱讀｜'+(a.title||'SIGN WELL'));location.href=`mailto:?subject=${subject}&body=${u}`};
   const view=document.querySelector('.article-view');const fontDock=swMountArticleFontDock(view);let fs='small';try{fs=localStorage.getItem('signwell-reader-font-v2')||'small'}catch(_){}swApplyReaderFont(view,fs);fontDock?.querySelectorAll('[data-font-size]').forEach(b=>b.onclick=()=>swApplyReaderFont(view,b.dataset.fontSize));
-  swBindSectionLinks(a);swScrollToRequestedSection();swUpdateArticleMeta(a);window.SignWellAnatomy?.mountArticle?.(a,document);
+  swBindSectionLinks(a);swScrollToRequestedSection();swUpdateArticleMeta(a);
   document.title=`${a.title} · SIGN WELL`;
   hardenRenderedArticleMedia();bindBack();initReveal();setupToc();
 }
@@ -2244,21 +2362,24 @@ function initPointerFX(){
     card.style.setProperty('--py',(y*100).toFixed(1)+'%');
     card.style.setProperty('--ry',((x-.5)*7).toFixed(2)+'deg');
     card.style.setProperty('--rx',((.5-y)*5).toFixed(2)+'deg');
+    card.style.setProperty('--ex',((x-.5)*22).toFixed(1)+'px');
+    card.style.setProperty('--ey',((y-.5)*22).toFixed(1)+'px');
   };
 
   document.addEventListener('pointermove',e=>{
     tx=e.clientX;ty=e.clientY;idle=0;
     if(!looping){looping=true;raf(loop)}
-    if(!useTrigGlass){
-      const el=e.target.closest?.('.hero-card,.article-card,.topic-card,.share-card');
-      if(el!==card&&card)resetCard(card);
-      card=el;cx=e.clientX;cy=e.clientY;
-      if(card&&!pending){pending=true;raf(applyCard)}
-    }
+    const el=e.target.closest?.('.hero-card,.article-card,.topic-card');
+    if(el!==card&&card)resetCard(card);
+    card=el;cx=e.clientX;cy=e.clientY;
+    if(card&&!pending){pending=true;raf(applyCard)}
   },{passive:true});
 
   document.addEventListener('pointerleave',()=>{if(card)resetCard(card);card=null},{passive:true});
-  function resetCard(el){el.style.setProperty('--rx','0deg');el.style.setProperty('--ry','0deg')}
+  function resetCard(el){
+    el.style.setProperty('--rx','0deg');el.style.setProperty('--ry','0deg');
+    el.style.setProperty('--ex','0px');el.style.setProperty('--ey','0px');
+  }
 }
 
 /* ---------- reveal on scroll · repeatable ---------- */

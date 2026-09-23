@@ -1,0 +1,35 @@
+/* Public home component 07 · source id: sw-v23-9-33-logo-ribbon-flow */
+/* v23.9.33 · keep the blurred logo as a continuous background; ribbon sits below without clipping */
+.sw-home-visual-zone{
+  position:relative;
+  isolation:isolate;
+  overflow:visible;
+}
+.sw-home-visual-zone>.sw-home-logo-stage{
+  z-index:0!important;
+  top:clamp(330px,43vh,470px)!important;
+  left:50%!important;
+  right:auto!important;
+  transform:translate(-50%,-50%)!important;
+  pointer-events:none!important;
+}
+.sw-home-visual-zone>.home-scroll-scene{
+  position:relative;
+  z-index:2;
+  overflow:visible!important;
+}
+.sw-home-visual-zone>.sw-signwell-ribbon{
+  position:relative;
+  z-index:3!important;
+  margin-top:clamp(10px,1.5vw,24px);
+}
+@media(max-width:900px){
+  .sw-home-visual-zone>.sw-home-logo-stage{top:clamp(300px,40vh,410px)!important}
+}
+@media(max-width:700px){
+  .sw-home-visual-zone>.sw-home-logo-stage{
+    top:clamp(270px,38vh,360px)!important;
+    left:50%!important;
+  }
+  .sw-home-visual-zone>.sw-signwell-ribbon{margin-top:18px}
+}
