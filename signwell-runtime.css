@@ -1,0 +1,170 @@
+/* SIGN WELL Public v23 · final experience + performance layer */
+:root{
+  --sw-v23-text:#17212d;
+  --sw-v23-muted:#627487;
+  --sw-v23-surface:rgba(255,255,255,.68);
+  --sw-v23-surface-strong:rgba(255,255,255,.86);
+  --sw-v23-line:rgba(71,111,145,.12);
+  --sw-v23-radius:clamp(24px,4vw,38px);
+}
+html{scroll-padding-top:88px;overscroll-behavior-x:none}
+body{overscroll-behavior-x:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+:where(h1,h2,h3,h4,.page-title,.hero-title,.share-title){text-wrap:balance}
+:where(p,li,.lead,.about-hero-copy,.newsletter-lead){text-wrap:pretty}
+:where(a,button,input,textarea,select,[role="button"]){-webkit-tap-highlight-color:transparent}
+button,.pillbtn,.softbtn,.newsletter-submit,.search-close{touch-action:manipulation}
+
+:where(.article-body h2,.article-body h3,.article-body h4){scroll-margin-top:96px}
+
+/* Reading surface: keep long-form content visually separated from the viewport edge. */
+.article-view{
+  border-radius:var(--sw-v23-radius)!important;
+  overflow:clip;
+  border:1px solid rgba(255,255,255,.76);
+  background:linear-gradient(155deg,rgba(255,255,255,.70),rgba(244,250,255,.48));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.94),0 22px 64px rgba(49,86,118,.10);
+}
+.article-body{font-size:clamp(16px,1.5vw,17px);line-height:1.92;letter-spacing:.002em}
+.article-body p{margin-bottom:1.2em}
+.article-body blockquote{line-height:1.82}
+.article-body img{max-width:100%;height:auto}
+.article-body table{font-size:clamp(12px,2.8vw,14px)}
+
+/* Keep dynamic surfaces readable regardless of theme inheritance. */
+body.dark{
+  --sw-v23-text:#f2f7fb;
+  --sw-v23-muted:#b5c5d4;
+  --sw-v23-surface:rgba(22,31,41,.72);
+  --sw-v23-surface-strong:rgba(24,34,45,.90);
+  --sw-v23-line:rgba(188,214,235,.13);
+}
+body.dark .article-view{
+  color:#edf5fb;
+  background:linear-gradient(155deg,rgba(24,34,45,.84),rgba(14,23,32,.74));
+  border-color:rgba(194,218,237,.15);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 24px 70px rgba(0,0,0,.22);
+}
+body.dark .article-body,
+body.dark .article-body p,
+body.dark .article-body li{color:#dbe7f1}
+body.dark .article-body :where(h1,h2,h3,h4,strong){color:#f5f9fc}
+body.dark :where(.muted,.article-meta,.meta,.eyebrow,.about-hero-copy,.newsletter-lead){color:#afc1d1}
+
+/* Give long lists/cards a lighter layout cost without changing appearance. */
+:where(.article-card,.topic-card,.person-card,.about-team-card,.share-card){content-visibility:auto;contain-intrinsic-size:1px 360px}
+
+/* Safari/iPhone: fixed backgrounds and many live blurs are costly while scrolling. */
+@media (max-width:760px),(pointer:coarse){
+  body{background-attachment:scroll!important}
+  .cursor-glow{display:none!important}
+  .ambient{filter:blur(50px) saturate(122%)!important;opacity:.72!important;will-change:auto!important}
+  .ambient .orb.c,.ambient .orb.d{display:none!important}
+  .article-view{width:auto!important;margin:10px max(10px,env(safe-area-inset-left)) 18px!important;padding:24px 18px 34px!important;border-radius:28px!important}
+  .article-body{font-size:16px!important;line-height:1.88!important}
+  .article-body :where(h2,h3){line-height:1.28}
+  .page,.wrap,.shell{max-width:100%}
+  
+  .searchbox,.newsletter-terms-card{max-height:min(82dvh,760px)}
+}
+
+body.sw-scrolling :where(.lightcard)::after,
+body.sw-scrolling .cursor-glow{opacity:0!important}
+body.sw-page-hidden *{animation-play-state:paused!important}
+
+/* Low-power/data-saving tier. */
+body.sw-perf-lite .ambient{display:none!important}
+body.sw-perf-lite .grain{opacity:.06!important}
+
+body.sw-perf-lite :where(.lightcard)::after,.sw-perf-lite .sheen-layer{display:none!important}
+
+/* Touch targets and focus quality. */
+
+:where(button,a,input,textarea,select):focus-visible{outline:3px solid rgba(74,151,221,.30)!important;outline-offset:3px!important}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto!important}
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+@media (prefers-contrast:more){
+  body:not(.dark){--muted:#4d6071}
+  body.dark{--muted:#c9d6e0}
+  .glass,.article-view{border-width:1.5px!important}
+}
+
+/* Release 23.9.0 · persistent legal links */
+.sw-legal-links{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:8px;font-size:10px;color:inherit}.sw-legal-links a{color:inherit;text-decoration:none;border-bottom:1px solid currentColor;opacity:.86}.sw-legal-links a:hover{opacity:1}.sw-legal-links span{opacity:.42}@media(max-width:620px){.sw-legal-links{gap:6px;font-size:10px}}
+
+
+/* ============================================================
+   SIGN WELL 23.9.0 · overall polish / resilience layer
+   Loaded last so older patch provenance cannot override it.
+   ============================================================ */
+:root{
+  --sw236-content:min(1120px,calc(100vw - 32px));
+  --sw236-reading:72ch;
+  --sw236-focus:rgba(64,145,218,.34);
+}
+html{scrollbar-gutter:stable;color-scheme:light;-webkit-text-size-adjust:100%}
+body.dark{color-scheme:dark}
+body{min-height:100svh;min-height:100dvh}
+::selection{background:rgba(118,184,237,.28);color:inherit}
+:where(button,input,textarea,select){font:inherit}
+:where(button,a,[role="button"]){-webkit-user-select:none;user-select:none}
+:where(input,textarea,select){accent-color:#4f91cb}
+:where(.article-card,.topic-card,.share-card,.about-value,.about-team-card,.person-card,.panel,.lightcard){transform:translateZ(0)}
+
+/* Editorial rhythm: title/cover can breathe while the prose keeps a readable measure. */
+.article-top{width:min(820px,100%);margin-inline:auto}
+.article-cover{width:min(920px,100%);margin-inline:auto;margin-bottom:clamp(24px,4vw,34px)}
+.article-layout{grid-template-columns:minmax(0,720px) minmax(172px,200px)!important;gap:clamp(24px,4vw,42px)!important;align-items:start}
+.sw-article-main{min-width:0;width:100%}
+.article-body{width:100%;max-width:var(--sw236-reading)!important;margin-inline:auto;overflow-wrap:anywhere;word-break:normal}
+.sw-trust-panel{max-width:var(--sw236-reading);margin-inline:auto}
+.sw-related{width:min(920px,100%);margin-inline:auto}
+.toc{max-height:calc(100dvh - 130px);overflow:auto;overscroll-behavior:contain;padding-right:3px;scrollbar-width:thin}
+.toc button{min-height:36px}
+.article-body :where(h2,h3,h4):target{animation:sw236TargetFlash 1.25s ease both}
+@keyframes sw236TargetFlash{0%{background:rgba(130,197,244,.22);box-shadow:0 0 0 8px rgba(130,197,244,.12)}100%{background:transparent;box-shadow:0 0 0 0 transparent}}
+
+/* More robust wide content inside long-form articles. */
+.article-body table{display:block;max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
+.article-body pre{max-width:100%;overflow:auto;-webkit-overflow-scrolling:touch}
+.article-body iframe,.article-body video{max-width:100%;border-radius:18px}
+.article-body mark{box-decoration-break:clone;-webkit-box-decoration-break:clone}
+
+/* Dynamic UI surfaces should not leak scroll to the page behind them. */
+:where(.searchbox,.newsletter-terms-card,.sw-continue-card,.idle-subscribe-card,.newsletter-flow-card,.share-sheet-card){overscroll-behavior:contain}
+body.newsletter-terms-open{overflow:hidden;touch-action:none}
+
+/* Connection feedback shared across all Public pages. */
+.sw-network-status{position:fixed;z-index:9999;left:50%;top:max(12px,env(safe-area-inset-top));translate:-50% -10px;display:flex;align-items:center;gap:8px;max-width:min(520px,calc(100vw - 24px));padding:10px 14px;border-radius:999px;background:rgba(19,31,43,.92);border:1px solid rgba(255,255,255,.13);box-shadow:0 14px 38px rgba(0,0,0,.18);color:#fff;font-size:11px;font-weight:760;line-height:1.3;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .22s ease,translate .28s cubic-bezier(.16,1,.3,1),visibility 0s linear .25s}
+.sw-network-status.show{opacity:1;visibility:visible;translate:-50% 0;transition-delay:0s}.sw-network-status::before{content:"";width:8px;height:8px;border-radius:50%;background:#ffbd5a;box-shadow:0 0 0 4px rgba(255,189,90,.12)}.sw-network-status.online::before{background:#78d49b;box-shadow:0 0 0 4px rgba(120,212,155,.12)}
+
+/* Cleaner focus and autofill states in both themes. */
+:where(button,a,input,textarea,select,[tabindex]):focus-visible{outline:3px solid var(--sw236-focus)!important;outline-offset:3px!important}
+body.dark input:-webkit-autofill,body.dark textarea:-webkit-autofill,body.dark select:-webkit-autofill{-webkit-text-fill-color:#eef6fc!important;-webkit-box-shadow:0 0 0 1000px #142231 inset!important;caret-color:#fff}
+
+/* Small screens: prevent iOS focus zoom, simplify visual cost, keep generous reading gutters. */
+@media(max-width:760px),(pointer:coarse){
+  :where(input,textarea,select){font-size:16px!important}
+  html{scrollbar-gutter:auto}
+  .article-top{width:100%}
+  .article-layout{display:block!important}
+  .article-body{max-width:none!important}
+  .sw-trust-panel{max-width:none}
+  .sw-reader-tools>button{min-height:44px}
+  .sw-font-controls button{min-width:44px;min-height:40px}
+  .sw-related-card{min-height:128px}
+  .article-body :where(h2,h3,h4){scroll-margin-top:84px}
+}
+@media(min-width:761px) and (max-width:1024px){
+  .article-layout{grid-template-columns:minmax(0,1fr)!important}
+  .toc{display:none!important}
+  .article-view{padding-inline:clamp(28px,5vw,48px)!important}
+}
+@media(max-width:390px){
+  .article-view{padding-inline:15px!important}
+  .sw-reader-tools{display:grid!important;grid-template-columns:1fr 1fr}
+  .sw-font-controls{grid-column:1/-1}
+}
+@media(prefers-reduced-motion:reduce){.sw-network-status{transition:none!important}.article-body :where(h2,h3,h4):target{animation:none!important}}

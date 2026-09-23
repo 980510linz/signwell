@@ -1,0 +1,106 @@
+/* SIGN WELL v24.22 · Formosa Dusk
+   Taiwan mode is a complete material palette, not a red/green recolor. */
+:root{
+  --tw-night:#102426;
+  --tw-night-2:#173438;
+  --tw-night-3:#213f40;
+  --tw-jade:#5e9687;
+  --tw-jade-soft:#8db9ad;
+  --tw-sea:#8fc9dc;
+  --tw-sea-soft:#c7dfe6;
+  --tw-pink:#d6a6b7;
+  --tw-coral:#c46f61;
+  --tw-rice:#e7d9bd;
+  --tw-ink:#f7f1e8;
+  --tw-muted:#c6d1cc;
+  --tw-line:rgba(231,244,240,.17);
+}
+html.sw-v2422 body.dark,
+html.sw-v2422 body.taiwan-theme{
+  color-scheme:dark;
+  --sw-ink:var(--tw-ink);
+  --sw-muted:var(--tw-muted);
+  --sw-glass-fill:rgba(218,238,235,.085);
+  --sw-glass-fill-strong:rgba(218,238,235,.13);
+  --sw-glass-edge:rgba(231,244,240,.19);
+  --sw-glass-edge-soft:rgba(231,244,240,.095);
+  --sw-glass-inner:rgba(255,255,255,.06);
+  --sw-glass-drop:rgba(0,0,0,.22);
+  --sw-shadow:0 18px 48px rgba(0,0,0,.24),0 3px 12px rgba(0,0,0,.14);
+  --sw-shadow-hover:0 24px 58px rgba(0,0,0,.30),0 5px 14px rgba(0,0,0,.17);
+  color:var(--tw-ink);
+  background:
+    radial-gradient(54rem 36rem at -8% -10%,rgba(94,150,135,.28),transparent 70%),
+    radial-gradient(44rem 30rem at 106% 2%,rgba(196,111,97,.14),transparent 72%),
+    radial-gradient(36rem 26rem at 74% 104%,rgba(143,201,220,.10),transparent 74%),
+    linear-gradient(150deg,#0e2022 0%,#153136 54%,#1f2b2d 100%);
+}
+html.sw-v2422 body.dark::before,
+html.sw-v2422 body.taiwan-theme::before{
+  background:
+    radial-gradient(32rem 22rem at 16% 30%,rgba(141,185,173,.11),transparent 74%),
+    radial-gradient(30rem 24rem at 82% 54%,rgba(214,166,183,.08),transparent 74%);
+}
+html.sw-v2422 body.dark :is(.sw-glass-surface,.glass,.brand-top,.top-actions .iconbtn,.searchbox,.pager,.sw-topic-console),
+html.sw-v2422 body.taiwan-theme :is(.sw-glass-surface,.glass,.brand-top,.top-actions .iconbtn,.searchbox,.pager,.sw-topic-console){
+  background:linear-gradient(145deg,rgba(226,241,238,.11),rgba(145,190,184,.045));
+  border-color:rgba(231,244,240,.16);
+  box-shadow:var(--sw-shadow);
+}
+html.sw-v2422 body.dark :is(.sw-glass-surface,.glass,.brand-top,.top-actions .iconbtn,.searchbox,.pager,.sw-topic-console)::after,
+html.sw-v2422 body.taiwan-theme :is(.sw-glass-surface,.glass,.brand-top,.top-actions .iconbtn,.searchbox,.pager,.sw-topic-console)::after{
+  background:
+    radial-gradient(190px 120px at var(--sw-gx,32%) var(--sw-gy,18%),rgba(232,246,242,.28),transparent 62%),
+    linear-gradient(140deg,rgba(235,246,243,.18),transparent 32%,transparent 70%,rgba(143,201,220,.08));
+  mix-blend-mode:screen;
+}
+html.sw-v2422 body.dark :is(h1,h2,h3,h4,strong,a),
+html.sw-v2422 body.taiwan-theme :is(h1,h2,h3,h4,strong,a){color:var(--tw-ink)}
+html.sw-v2422 body.dark :is(p,li,.muted,.meta,.lede),
+html.sw-v2422 body.taiwan-theme :is(p,li,.muted,.meta,.lede){color:var(--tw-muted)}
+html.sw-v2422 body.dark :is(.sw-glass-control,.iconbtn,.pillbtn,.softbtn,.primarybtn,.search-close),
+html.sw-v2422 body.taiwan-theme :is(.sw-glass-control,.iconbtn,.pillbtn,.softbtn,.primarybtn,.search-close){
+  color:var(--tw-ink);
+  background:linear-gradient(145deg,rgba(225,241,237,.13),rgba(109,154,148,.06));
+  border-color:rgba(235,246,243,.17);
+  box-shadow:0 10px 28px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.075);
+}
+html.sw-v2422 body.dark :is(.primarybtn,.sw-primary),
+html.sw-v2422 body.taiwan-theme :is(.primarybtn,.sw-primary){
+  background:linear-gradient(135deg,rgba(94,150,135,.92),rgba(143,201,220,.72));
+  color:#f8f3ea;
+}
+html.sw-v2422 body.dark :is(input,textarea,select),
+html.sw-v2422 body.taiwan-theme :is(input,textarea,select){
+  color:var(--tw-ink);
+  background:rgba(240,248,246,.07);
+  border-color:rgba(231,244,240,.14);
+}
+html.sw-v2422 body.dark #themeBtn,
+html.sw-v2422 body.taiwan-theme #themeBtn{color:var(--tw-rice)}
+html.sw-v2422 body.dark :is(.eyebrow,.badge,.tag),
+html.sw-v2422 body.taiwan-theme :is(.eyebrow,.badge,.tag){
+  color:#d7e8e3;
+  background:rgba(94,150,135,.13);
+  border-color:rgba(141,185,173,.18);
+}
+
+/* Topic-specific theme tokens, consumed by topics-v24.22.css. */
+html.sw-v2422 body.dark,
+html.sw-v2422 body.taiwan-theme{
+  --topic-stage-fill-a:rgba(16,36,38,.86);
+  --topic-stage-fill-b:rgba(23,52,56,.78);
+  --topic-card-a:rgba(231,244,240,.14);
+  --topic-card-b:rgba(94,150,135,.055);
+  --topic-card-line:rgba(231,244,240,.18);
+  --topic-card-ink:var(--tw-ink);
+  --topic-card-muted:var(--tw-muted);
+  --topic-card-spec:rgba(236,248,245,.26);
+  --topic-wing-a:rgba(28,57,58,.86);
+  --topic-wing-b:rgba(18,39,41,.76);
+  --topic-wing-line:rgba(231,244,240,.17);
+  --topic-accent:var(--tw-sea);
+  --topic-accent-2:var(--tw-jade);
+  --topic-accent-soft:var(--tw-pink);
+  --topic-danger:var(--tw-coral);
+}

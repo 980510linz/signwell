@@ -1,0 +1,148 @@
+/* SIGN WELL v24.22 · Canonical Liquid Glass primitives
+   Scope: shared material/tokens only. Topic 3D geometry is owned by topics-v24.22.css. */
+:root{
+  --sw-bg:#f7fbff;
+  --sw-bg-pink:#fff8fb;
+  --sw-ink:#162033;
+  --sw-muted:#657087;
+  --sw-blue:#a9d9f3;
+  --sw-blue-strong:#6fb9df;
+  --sw-pink:#f3c8d8;
+  --sw-pink-strong:#de9eb8;
+  --sw-green:#7fae9d;
+  --sw-cream:#fffaf2;
+  --sw-glass-fill:rgba(255,255,255,.34);
+  --sw-glass-fill-strong:rgba(255,255,255,.50);
+  --sw-glass-edge:rgba(255,255,255,.72);
+  --sw-glass-edge-soft:rgba(255,255,255,.36);
+  --sw-glass-inner:rgba(255,255,255,.16);
+  --sw-glass-drop:rgba(60,81,120,.13);
+  --sw-shadow:0 16px 40px rgba(60,81,120,.13),0 3px 10px rgba(60,81,120,.07);
+  --sw-shadow-hover:0 22px 50px rgba(60,81,120,.16),0 5px 14px rgba(60,81,120,.09);
+  --sw-spring-soft:cubic-bezier(.22,1.22,.36,1);
+  --sw-spring-pop:cubic-bezier(.20,1.34,.32,1);
+  --sw-ease:cubic-bezier(.2,.75,.24,1);
+  --sw-r-xl:30px;
+  --sw-r-lg:24px;
+  --sw-r-md:18px;
+  --sw-r-pill:999px;
+  --sw-glass-blur:16px;
+  --sw-glass-sat:158%;
+  color-scheme:light;
+}
+
+html.sw-v2422{background:var(--sw-bg);overflow-x:clip;-webkit-text-size-adjust:100%}
+html.sw-v2422 body{
+  color:var(--sw-ink);
+  background:
+    radial-gradient(58rem 38rem at -10% -12%,rgba(169,217,243,.34),transparent 70%),
+    radial-gradient(48rem 34rem at 110% -4%,rgba(243,200,216,.30),transparent 72%),
+    radial-gradient(44rem 30rem at 70% 110%,rgba(255,250,242,.72),transparent 75%),
+    linear-gradient(180deg,#f9fcff 0%,#fffafd 58%,#f8fbff 100%);
+  overflow-x:clip;
+  min-height:100svh;
+}
+html.sw-v2422 body::before{
+  content:"";
+  position:fixed;
+  inset:-12%;
+  pointer-events:none;
+  z-index:-2;
+  background:
+    radial-gradient(32rem 24rem at 20% 28%,rgba(169,217,243,.14),transparent 74%),
+    radial-gradient(30rem 22rem at 82% 52%,rgba(243,200,216,.12),transparent 74%);
+  filter:blur(12px);
+  transform:translateZ(0);
+}
+
+/* One reusable material primitive. Geometry/layout remains component-owned. */
+html.sw-v2422 :is(.sw-glass-surface,.glass,.brand-top,.top-actions .iconbtn,.searchbox,.pager,.sw-topic-console):not(.sw-no-liquid){
+  position:relative;
+  isolation:isolate;
+  background:linear-gradient(145deg,rgba(255,255,255,.50),rgba(255,255,255,.20));
+  border:1px solid var(--sw-glass-edge);
+  -webkit-backdrop-filter:blur(var(--sw-glass-blur)) saturate(var(--sw-glass-sat));
+  backdrop-filter:blur(var(--sw-glass-blur)) saturate(var(--sw-glass-sat));
+  box-shadow:var(--sw-shadow);
+}
+html.sw-v2422 :is(.sw-glass-surface,.glass,.brand-top,.top-actions .iconbtn,.searchbox,.pager,.sw-topic-console):not(.sw-no-liquid)::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+  z-index:2;
+  background:
+    radial-gradient(190px 120px at var(--sw-gx,32%) var(--sw-gy,18%),rgba(255,255,255,.72),transparent 62%),
+    linear-gradient(140deg,rgba(255,255,255,.54),transparent 31%,transparent 69%,rgba(255,255,255,.22));
+  opacity:calc(.34 + var(--sw-gv,0)*.30);
+  mix-blend-mode:screen;
+  transition:opacity 160ms ease;
+}
+
+/* Explicit controls only. Never style all buttons or [role=button]. */
+html.sw-v2422 :is(.sw-glass-control,.iconbtn,.pillbtn,.softbtn,.primarybtn,.search-close):not(.sw-no-liquid){
+  position:relative;
+  isolation:isolate;
+  border:1px solid rgba(255,255,255,.72);
+  background:linear-gradient(145deg,rgba(255,255,255,.60),rgba(255,255,255,.27));
+  -webkit-backdrop-filter:blur(14px) saturate(165%);
+  backdrop-filter:blur(14px) saturate(165%);
+  box-shadow:0 9px 25px rgba(70,90,125,.11),inset 0 1px 0 rgba(255,255,255,.82),inset 0 0 18px rgba(255,255,255,.14);
+  transition:transform 330ms var(--sw-spring-pop),box-shadow 220ms ease,background 220ms ease,border-color 220ms ease;
+  -webkit-tap-highlight-color:transparent;
+}
+@media (hover:hover) and (pointer:fine){
+  html.sw-v2422 :is(.sw-glass-control,.iconbtn,.pillbtn,.softbtn,.primarybtn,.search-close):not(.sw-no-liquid):hover{
+    transform:translateY(-1px) scale(1.012);
+    box-shadow:0 12px 30px rgba(70,90,125,.14),inset 0 1px 0 rgba(255,255,255,.88);
+  }
+}
+html.sw-v2422 :is(.sw-glass-control,.iconbtn,.pillbtn,.softbtn,.primarybtn,.search-close):not(.sw-no-liquid):active{transform:scale(.955)}
+html.sw-v2422 :is(.primarybtn,.sw-primary){background:linear-gradient(135deg,rgba(126,190,224,.80),rgba(222,158,184,.68));color:#142033}
+
+html.sw-v2422 :is(input,textarea,select){
+  font:inherit;
+  color:var(--sw-ink);
+  border:1px solid rgba(107,135,175,.18);
+  background:rgba(255,255,255,.62);
+  border-radius:16px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.72);
+}
+html.sw-v2422 :is(input,textarea,select):focus{outline:none;border-color:rgba(111,185,223,.64);box-shadow:0 0 0 4px rgba(169,217,243,.24)}
+html.sw-v2422 :focus-visible{outline:2px solid #4d9bc7;outline-offset:3px}
+
+/* Runtime quality tokens. */
+html[data-sw-quality="medium"]{--sw-glass-blur:11px;--sw-glass-sat:142%}
+html[data-sw-quality="low"]{--sw-glass-blur:4px;--sw-glass-sat:118%}
+html[data-sw-quality="accessible"]{--sw-glass-blur:0px;--sw-glass-sat:100%}
+html[data-sw-quality="low"] body::before,
+html[data-sw-quality="accessible"] body::before{filter:none;opacity:.72}
+html[data-sw-quality="low"] :is(.sw-glass-surface,.glass,.brand-top,.top-actions .iconbtn,.searchbox,.pager,.sw-topic-console)::after,
+html[data-sw-quality="accessible"] :is(.sw-glass-surface,.glass,.brand-top,.top-actions .iconbtn,.searchbox,.pager,.sw-topic-console)::after{background:linear-gradient(145deg,rgba(255,255,255,.44),transparent 38%);opacity:.32}
+
+@media(max-width:760px){
+  :root{--sw-r-xl:24px;--sw-r-lg:20px;--sw-glass-blur:11px}
+  html.sw-v2422 body{background:
+    radial-gradient(34rem 24rem at -18% -4%,rgba(169,217,243,.26),transparent 72%),
+    radial-gradient(30rem 22rem at 118% 2%,rgba(243,200,216,.22),transparent 74%),
+    linear-gradient(180deg,#f9fcff,#fffafd)}
+  html.sw-v2422 :is(button,a,input,select){min-height:44px}
+}
+
+@media(prefers-reduced-transparency:reduce){
+  html.sw-v2422 :is(.sw-glass-surface,.glass,.brand-top,.top-actions .iconbtn,.searchbox,.pager,.sw-topic-console){
+    -webkit-backdrop-filter:none!important;
+    backdrop-filter:none!important;
+    background:#f7fbff!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  html.sw-v2422{scroll-behavior:auto}
+  html.sw-v2422 *,html.sw-v2422 *::before,html.sw-v2422 *::after{
+    animation-duration:.001ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.001ms!important;
+    scroll-behavior:auto!important;
+  }
+}

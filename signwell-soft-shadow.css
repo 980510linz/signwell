@@ -1,0 +1,120 @@
+/* SIGN WELL v23.9.39 · Global soft-shadow / no-hard-cut layer
+   Loaded last on every Public page. Keeps shadows diffuse and prevents
+   ambient light from visually terminating at container edges. */
+:root{
+  --sw-soft-shadow:0 3px 12px rgba(53,87,119,.025),0 18px 54px rgba(53,87,119,.045),0 54px 130px rgba(53,87,119,.032);
+  --sw-soft-shadow-hover:0 4px 14px rgba(53,87,119,.032),0 24px 68px rgba(53,87,119,.055),0 70px 160px rgba(53,87,119,.040);
+  --sw-soft-float:0 8px 24px rgba(48,82,114,.035),0 30px 88px rgba(48,82,114,.055),0 82px 180px rgba(48,82,114,.028);
+}
+body.dark{
+  --sw-soft-shadow:0 3px 12px rgba(0,0,0,.08),0 20px 58px rgba(0,0,0,.12),0 60px 140px rgba(0,0,0,.08);
+  --sw-soft-shadow-hover:0 4px 14px rgba(0,0,0,.10),0 28px 76px rgba(0,0,0,.15),0 76px 170px rgba(0,0,0,.09);
+  --sw-soft-float:0 8px 24px rgba(0,0,0,.10),0 34px 96px rgba(0,0,0,.16),0 90px 190px rgba(0,0,0,.08);
+}
+
+/* Background atmosphere: wider field + slower alpha falloff. */
+body:not(.dark){
+  background:
+    radial-gradient(70rem 56rem at -10% -8%,rgba(255,255,255,.95) 0%,rgba(255,255,255,.56) 30%,rgba(255,255,255,.16) 58%,transparent 84%),
+    radial-gradient(66rem 52rem at 112% 8%,rgba(211,232,255,.66) 0%,rgba(211,232,255,.34) 33%,rgba(211,232,255,.10) 62%,transparent 88%),
+    radial-gradient(54rem 44rem at 8% 110%,rgba(245,218,232,.34) 0%,rgba(245,218,232,.17) 36%,rgba(245,218,232,.055) 66%,transparent 90%),
+    linear-gradient(155deg,#fcfeff 0%,#f7fbff 48%,#eef5fc 100%)!important;
+}
+body.dark{
+  background:
+    radial-gradient(70rem 56rem at 110% -10%,rgba(55,92,126,.21) 0%,rgba(55,92,126,.11) 38%,rgba(55,92,126,.035) 68%,transparent 90%),
+    radial-gradient(58rem 48rem at -8% 108%,rgba(113,67,91,.11) 0%,rgba(113,67,91,.055) 40%,rgba(113,67,91,.018) 70%,transparent 92%),
+    linear-gradient(155deg,#111a23,#15232e 50%,#111c25)!important;
+}
+body::before{
+  inset:-12vmax!important;
+  background:
+    radial-gradient(34rem 34rem at 77% 18%,rgba(255,255,255,.36) 0%,rgba(255,255,255,.14) 46%,rgba(255,255,255,.035) 70%,transparent 90%),
+    radial-gradient(30rem 30rem at 20% 74%,rgba(214,234,255,.24) 0%,rgba(214,234,255,.10) 48%,rgba(214,234,255,.025) 72%,transparent 92%)!important;
+  filter:blur(16px)!important;
+}
+
+.ambient{
+  inset:-30vmax!important;
+  overflow:visible!important;
+  filter:blur(58px) saturate(108%)!important;
+  opacity:.68!important;
+  contain:none!important;
+}
+.ambient .orb{overflow:visible!important;contain:none!important}
+body:not(.dark) .orb.a{background:radial-gradient(circle,rgba(163,207,253,.40) 0%,rgba(163,207,253,.24) 28%,rgba(163,207,253,.105) 52%,rgba(163,207,253,.028) 73%,transparent 91%)!important}
+body:not(.dark) .orb.b{background:radial-gradient(circle,rgba(241,248,255,.72) 0%,rgba(226,240,255,.42) 30%,rgba(226,240,255,.15) 56%,rgba(226,240,255,.035) 76%,transparent 92%)!important}
+body:not(.dark) .orb.c{background:radial-gradient(circle,rgba(246,216,232,.30) 0%,rgba(246,216,232,.18) 30%,rgba(246,216,232,.075) 56%,rgba(246,216,232,.018) 76%,transparent 92%)!important}
+body:not(.dark) .orb.d{background:radial-gradient(circle,rgba(190,221,255,.25) 0%,rgba(190,221,255,.14) 32%,rgba(190,221,255,.052) 58%,rgba(190,221,255,.014) 78%,transparent 93%)!important}
+body.dark .orb.a{background:radial-gradient(circle,rgba(92,146,204,.26) 0%,rgba(92,146,204,.15) 31%,rgba(92,146,204,.052) 58%,rgba(92,146,204,.014) 78%,transparent 93%)!important}
+body.dark .orb.b{background:radial-gradient(circle,rgba(93,128,171,.20) 0%,rgba(93,128,171,.11) 34%,rgba(93,128,171,.036) 62%,transparent 92%)!important}
+body.dark .orb.c{background:radial-gradient(circle,rgba(195,136,169,.14) 0%,rgba(195,136,169,.075) 34%,rgba(195,136,169,.022) 64%,transparent 93%)!important}
+body.dark .orb.d{background:radial-gradient(circle,rgba(106,168,224,.15) 0%,rgba(106,168,224,.08) 34%,rgba(106,168,224,.024) 64%,transparent 93%)!important}
+
+/* Home blurred mark: overscan the glow so no ellipse edge is visible. */
+.sw-home-logo-stage{overflow:visible!important;contain:none!important}
+.sw-home-logo-stage::before{
+  inset:-28% -30% -30%!important;
+  border-radius:50%!important;
+  background:
+    radial-gradient(circle at 31% 31%,rgba(126,184,248,.22) 0%,rgba(126,184,248,.12) 30%,rgba(126,184,248,.045) 58%,rgba(126,184,248,.010) 76%,transparent 92%),
+    radial-gradient(circle at 69% 68%,rgba(245,182,211,.23) 0%,rgba(245,182,211,.12) 30%,rgba(245,182,211,.042) 58%,rgba(245,182,211,.010) 76%,transparent 92%)!important;
+  filter:blur(42px) saturate(103%)!important;
+  opacity:.70!important;
+}
+.sw-home-logo-stage::after{
+  inset:-12% -22% -18%!important;
+  background:
+    radial-gradient(circle at 36% 34%,rgba(139,194,250,.14) 0%,rgba(139,194,250,.065) 42%,rgba(139,194,250,.016) 70%,transparent 91%),
+    radial-gradient(circle at 64% 68%,rgba(242,182,209,.15) 0%,rgba(242,182,209,.068) 42%,rgba(242,182,209,.016) 70%,transparent 91%)!important;
+  filter:blur(36px)!important;
+  opacity:.62!important;
+}
+
+/* Main glass/card shadows: low-opacity layers with long falloff. */
+:is(.glass,.hero-card,.article-card,.topic-card,.person-card,.share-card,.newsletter-card,
+.about-manifesto,.about-value,.about-team-card,.sw-related-card,.searchbox,.idle-subscribe-card,
+.newsletter-flow-card,.newsletter-terms-card,.share-sheet,.article-view,.sw-trust-panel){
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.94),inset 0 -1px 0 rgba(107,142,176,.035),var(--sw-soft-shadow)!important;
+}
+body.dark :is(.glass,.hero-card,.article-card,.topic-card,.person-card,.share-card,.newsletter-card,
+.about-manifesto,.about-value,.about-team-card,.sw-related-card,.searchbox,.idle-subscribe-card,
+.newsletter-flow-card,.newsletter-terms-card,.share-sheet,.article-view,.sw-trust-panel){
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),inset 0 -1px 0 rgba(0,0,0,.08),var(--sw-soft-shadow)!important;
+}
+@media(hover:hover) and (pointer:fine){
+  :is(.article-card,.topic-card,.about-value,.about-team-card,.person-card,.sw-related-card):hover{
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.96),var(--sw-soft-shadow-hover)!important;
+  }
+}
+
+/* Fixed / floating glass should look suspended, never like a hard sticker. */
+
+
+
+/* Stage/cursor glows fade before their geometric bounds. */
+.stage-glow{background:radial-gradient(circle at var(--gx,50%) var(--gy,45%),rgba(150,205,255,.18) 0%,rgba(150,205,255,.075) 42%,rgba(150,205,255,.018) 68%,transparent 90%)!important;filter:blur(18px)!important}
+.stage-shadow{background:radial-gradient(ellipse at center,rgba(35,58,78,.14) 0%,rgba(35,58,78,.055) 46%,rgba(35,58,78,.012) 72%,transparent 92%)!important;filter:blur(16px)!important}
+.cursor-glow{filter:blur(10px)!important}
+
+/* Mobile keeps the same fade shape, but trims GPU cost rather than clipping it. */
+@media(max-width:760px){
+  .ambient{inset:-34vmax!important;filter:blur(46px) saturate(104%)!important;opacity:.58!important}
+  body::before{inset:-16vmax!important;filter:blur(12px)!important}
+  .sw-home-logo-stage::before{filter:blur(34px) saturate(102%)!important}
+  .sw-home-logo-stage::after{filter:blur(30px)!important}
+  :is(.glass,.hero-card,.article-card,.topic-card,.person-card,.share-card,.newsletter-card,
+  .about-manifesto,.about-value,.about-team-card,.sw-related-card,.searchbox,.idle-subscribe-card,
+  .newsletter-flow-card,.newsletter-terms-card,.share-sheet,.article-view){
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 3px 10px rgba(53,87,119,.018),0 16px 44px rgba(53,87,119,.038),0 44px 100px rgba(53,87,119,.024)!important;
+  }
+  body.dark :is(.glass,.hero-card,.article-card,.topic-card,.person-card,.share-card,.newsletter-card,
+  .about-manifesto,.about-value,.about-team-card,.sw-related-card,.searchbox,.idle-subscribe-card,
+  .newsletter-flow-card,.newsletter-terms-card,.share-sheet,.article-view){
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 3px 10px rgba(0,0,0,.07),0 18px 48px rgba(0,0,0,.10),0 48px 110px rgba(0,0,0,.06)!important;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .ambient,.ambient .orb,.sw-home-logo-stage::before,.sw-home-logo-stage::after{animation:none!important}
+}
