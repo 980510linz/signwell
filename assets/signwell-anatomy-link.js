@@ -1,0 +1,1 @@
+(()=>{'use strict';const a=window.SIGNWELL_STATIC_ARTICLE?.anatomy;if(!a||a.enabled===false)return;const body=document.querySelector('.article');if(!body)return;const p=document.createElement('p');p.innerHTML='<span class="sw-anatomy-link">解剖定位 · '+String(a.label||a.primaryId||'相關部位').replace(/[<>&]/g,'')+'</span>';body.insertBefore(p,body.firstChild)})();
