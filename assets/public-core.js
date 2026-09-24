@@ -1,5 +1,5 @@
 (()=>{'use strict';
-const VERSION='24.36.2';
+const VERSION='24.36.3';
 const PAGES=['home','topics','about','share','newsletter'];
 const FILE={home:'index.html',topics:'topics.html',about:'about.html',share:'share.html',newsletter:'newsletter.html'};
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
@@ -61,3 +61,14 @@ function setupGlobal(){setupDock();$('#brandHome').onclick=()=>navigate('home');
 setupGlobal();renderCurrent(false);bootstrap();
 window.SIGNWELL_CLEAN_PUBLIC={version:VERSION,bridge,navigate,articleNavigate,renderCurrent};
 })();
+
+/* Canonical app-shell: safe no-op outside HTTPS/localhost. */
+function swRegisterPublicServiceWorker_(){
+  if(!('serviceWorker' in navigator))return;
+  if(location.protocol!=='https:'&&location.hostname!=='localhost')return;
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'}).catch(()=>{});
+  },{once:true});
+}
+swRegisterPublicServiceWorker_();
+
