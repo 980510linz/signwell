@@ -1,5 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://980510linz.github.io/signwell/sitemap.xml
-Sitemap: https://980510linz.github.io/signwell/news-sitemap.xml
