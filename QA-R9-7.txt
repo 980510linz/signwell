@@ -1,0 +1,7 @@
+QA checklist · R9.7 Ambient Cubic Background
+[pass] Homepage keeps original jelly-glass hero behavior.
+[pass] Non-home pages receive subtle blue/pink ambient background.
+[pass] Ambient motion uses cubic displacement in JS.
+[pass] Mobile remains vertical-scroll only.
+[pass] Existing public pages and assets preserved.
+[pass] Service worker cache name bumped and new ambient assets added to shell.

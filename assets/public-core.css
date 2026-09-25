@@ -2987,3 +2987,121 @@ html.sw-lite .recent-row::before { display:none !important; }
   font-size: 12.5px;
   line-height: 1.6;
 }
+
+
+/* ==========================================================================
+   R9.5 · Desktop 3D reliability
+   Wide touch screens keep a subtle autonomous 3D pose; fine pointers take over.
+   ========================================================================== */
+@media (min-width: 980px) and (prefers-reduced-motion: no-preference) {
+  .sw3d-scene[data-tilt-enabled="1"] { perspective: 1250px; perspective-origin: 50% 44%; }
+  .sw3d-scene[data-tilt-enabled="1"] .sw3d-card {
+    transform-origin: 50% 48%;
+    transform: rotateX(var(--sw3d-rx,0deg)) rotateY(var(--sw3d-ry,0deg)) translateZ(0);
+    box-shadow: 0 26px 70px rgba(96,132,164,.14), var(--shadow-3);
+  }
+  .sw3d-scene[data-tilt-enabled="1"] .share-main,
+  .sw3d-scene[data-tilt-enabled="1"] .newsletter-main { transform: translateZ(38px); }
+  .sw3d-scene[data-tilt-enabled="1"] .share-qr-pane { transform: translateZ(56px); }
+}
+
+
+/* ==========================================================================\n   R9.6 · unified centered brand + vertical-only mobile viewport\n   ========================================================================== */
+.brand-top.brand-top-wordmark{
+  left:50%!important;
+  right:auto!important;
+  top:var(--top-safe)!important;
+  width:max-content!important;
+  min-width:0!important;
+  max-width:calc(100vw - 152px)!important;
+  min-height:0!important;
+  height:auto!important;
+  padding:10px 16px 9px!important;
+  gap:0!important;
+  justify-content:center!important;
+  align-items:center!important;
+  border-radius:22px!important;
+  transform:translateX(-50%)!important;
+  white-space:nowrap;
+}
+.brand-top.brand-top-wordmark .brand-copy{
+  display:grid!important;
+  place-items:center!important;
+  gap:4px!important;
+  width:max-content!important;
+  text-align:center!important;
+  line-height:1!important;
+}
+.brand-top.brand-top-wordmark .brand-copy strong,
+.brand-top.brand-top-wordmark>#brandEnglish{
+  display:block!important;
+  margin:0!important;
+  font-size:12px!important;
+  font-weight:850!important;
+  line-height:1!important;
+  letter-spacing:.22em!important;
+  color:var(--ink)!important;
+  text-align:center!important;
+}
+.brand-top.brand-top-wordmark .brand-copy span#brandChinese{
+  display:block!important;
+  margin:0!important;
+  font-size:8.5px!important;
+  font-weight:720!important;
+  line-height:1.05!important;
+  letter-spacing:.14em!important;
+  color:#6f8193!important;
+  text-align:center!important;
+}
+.brand-top.brand-top-wordmark:hover{
+  transform:translateX(-50%) translateY(-1px) scale(1.015)!important;
+}
+.brand-top.brand-top-wordmark:active{
+  transform:translateX(-50%) scale(.96)!important;
+}
+
+/* Newsletter is a single focused subscription card; QR is intentionally absent. */
+.newsletter-card-compact{max-width:760px!important}
+.newsletter-card-grid-compact{grid-template-columns:minmax(0,1fr)!important}
+.newsletter-qr-pane,.newsletter-qr-minimal,.newsletter-qr-card-simple{display:none!important}
+
+/* Share QR typography: one centered site identity, no auxiliary labels. */
+.share-qr-brand{
+  display:grid;
+  place-items:center;
+  gap:4px;
+  margin:0 auto 16px;
+  text-align:center;
+}
+.share-qr-brand strong{
+  font:850 13px/1 var(--font-sans);
+  letter-spacing:.22em;
+  color:var(--ink);
+}
+.share-qr-brand span{
+  font:720 9px/1.1 var(--font-sans);
+  letter-spacing:.14em;
+  color:var(--muted);
+}
+
+@media(max-width:820px){
+  html,body{
+    width:100%!important;
+    max-width:100%!important;
+    overflow-x:hidden!important;
+    overscroll-behavior-x:none!important;
+  }
+  @supports(overflow:clip){html,body{overflow-x:clip!important}}
+  body{position:relative!important}
+  #app,.footer,.page-hero,.section,.panel,.sw3d-scene,.newsletter-experience,.share-scene{
+    max-width:100%!important;
+  }
+  .brand-top.brand-top-wordmark{
+    max-width:calc(100vw - 128px)!important;
+    padding:10px 15px 9px!important;
+    border-radius:21px!important;
+  }
+  .brand-top.brand-top-wordmark .brand-copy strong{font-size:12px!important;letter-spacing:.22em!important}
+  .brand-top.brand-top-wordmark .brand-copy span#brandChinese{font-size:8.5px!important}
+  .newsletter-card-compact{max-width:100%!important}
+}

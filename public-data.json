@@ -36,5 +36,20 @@
   },
   "topics": [],
   "people": [],
-  "glossary": []
+  "glossary": [],
+  "heroConfig": {
+    "spinRate": 0.24,
+    "ringSize": 0.78,
+    "tube": 0.36,
+    "ior": 1.4,
+    "iorFresnel": 1.5,
+    "dispersion": 0.018,
+    "baseRoll": 36,
+    "baseTilt": -52,
+    "textZ": -0.22,
+    "jelly": 1,
+    "floatAmp": 0.02,
+    "ringLift": 0.1,
+    "word": "SIGN WELL"
+  }
 }

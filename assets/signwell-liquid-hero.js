@@ -1,4 +1,4 @@
-/* SIGN WELL · Jelly Glass Ring Hero R9.2.1
+/* SIGN WELL · Jelly Glass Ring Hero R9.3
    Real-time ray-traced glass torus. Vanilla WebGL, no dependencies, CSP-safe.
 
    - The ring is a signed-distance torus. Each pixel casts a camera ray; rays that
@@ -16,7 +16,7 @@
 (() => {
   'use strict';
 
-  const VERSION = 'R9.2.1-jelly-raytraced-glass-studio';
+  const VERSION = 'R9.3-adaptive-jelly-raytraced-glass-studio';
   const DEG = Math.PI / 180;
 
   /* ---- Look and motion settings ------------------------------------------ */
@@ -46,10 +46,48 @@
   };
 
   const TIERS = {
-    high: { stepsOut: 90, stepsIn: 40, maxEv: 14, aa: 5, glassDetail: 1, maxPixels: 3300000, dprCap: 2, fps: 60 },
-    mid:  { stepsOut: 70, stepsIn: 32, maxEv: 12, aa: 4, glassDetail: 0, maxPixels: 1100000, dprCap: 2, fps: 60 },
-    low:  { stepsOut: 56, stepsIn: 26, maxEv: 10, aa: 1, glassDetail: 0, maxPixels: 520000,  dprCap: 1.5, fps: 40 },
+    high: { stepsOut: 90, stepsIn: 40, maxEv: 14, aa: 5, glassDetail: 1, maxPixels: 3000000, dprCap: 2.0, fps: 60, startQ: 0.88 },
+    mid:  { stepsOut: 70, stepsIn: 32, maxEv: 12, aa: 4, glassDetail: 0, maxPixels: 1050000, dprCap: 1.75, fps: 50, startQ: 0.82 },
+    low:  { stepsOut: 52, stepsIn: 24, maxEv: 9,  aa: 1, glassDetail: 0, maxPixels: 420000,  dprCap: 1.35, fps: 34, startQ: 0.74 },
+    safe: { stepsOut: 42, stepsIn: 20, maxEv: 8,  aa: 1, glassDetail: 0, maxPixels: 260000,  dprCap: 1.0,  fps: 24, startQ: 0.68 },
   };
+
+  /* Device adaptation is intentionally conservative: geometry and material stay the same;
+     only ray budget, resolution and frame rate change. Learned settings are cached so a
+     device that struggled once starts lighter on the next visit instead of flashing black. */
+  const PERF_KEY = 'signwell.hero.r93.perf';
+  const PERF_TTL = 7 * 24 * 60 * 60 * 1000;
+  const tierRank = { high: 3, mid: 2, low: 1, safe: 0 };
+  const lowerTier = n => n === 'high' ? 'mid' : n === 'mid' ? 'low' : 'safe';
+  const deviceSignature = () => {
+    const dm = navigator.deviceMemory || 0, hc = navigator.hardwareConcurrency || 0;
+    const sw = Math.round((screen.width || innerWidth || 0) / 100) * 100;
+    const sh = Math.round((screen.height || innerHeight || 0) / 100) * 100;
+    return [dm, hc, sw, sh, Math.round((devicePixelRatio || 1) * 10)].join(':');
+  };
+  function readLearnedPerf(){
+    try {
+      const v = JSON.parse(localStorage.getItem(PERF_KEY) || 'null');
+      if (!v || v.sig !== deviceSignature() || Date.now() - v.at > PERF_TTL) return null;
+      return v;
+    } catch (_) { return null; }
+  }
+  function writeLearnedPerf(tier, quality, reason){
+    try { localStorage.setItem(PERF_KEY, JSON.stringify({ sig: deviceSignature(), tier, quality: Math.max(.5, Math.min(1, quality || .7)), reason: reason || '', at: Date.now() })); } catch (_) {}
+  }
+  function chooseTier(host, isMobile, reduced){
+    if (host.dataset.liquidTier && TIERS[host.dataset.liquidTier]) return { name: host.dataset.liquidTier, learned: null };
+    const mem = navigator.deviceMemory || 0, cores = navigator.hardwareConcurrency || 0;
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const saveData = !!(conn && conn.saveData);
+    let name = 'high';
+    if (reduced || saveData || (mem && mem <= 2) || (cores && cores <= 2)) name = 'safe';
+    else if (isMobile || (mem && mem <= 4) || (cores && cores <= 4)) name = 'low';
+    else if ((mem && mem <= 6) || (cores && cores <= 6)) name = 'mid';
+    const learned = readLearnedPerf();
+    if (learned && TIERS[learned.tier] && tierRank[learned.tier] < tierRank[name]) name = learned.tier;
+    return { name, learned };
+  }
 
   /* ---- Shaders ----------------------------------------------------------- */
   const VS1 = 'attribute vec2 aPos;void main(){gl_Position=vec4(aPos,0.0,1.0);}';
@@ -691,43 +729,67 @@ void main(){
     if (!host || host.dataset.liquidReady === '1') return;
     if (window.SignWellHeroConfig && typeof window.SignWellHeroConfig === 'object') Object.assign(CFG, window.SignWellHeroConfig);
     host.dataset.liquidReady = '1';
-    host.dataset.liquidVersion = 'R9.2';
+    host.dataset.liquidVersion = 'R9.3';
     let canvas = host.querySelector('canvas');
     if (!canvas) { canvas = document.createElement('canvas'); canvas.setAttribute('aria-hidden', 'true'); host.prepend(canvas); }
 
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const coarse = !matchMedia('(pointer:fine)').matches;
     const isMobile = matchMedia('(max-width:760px)').matches || coarse;
-    const lowPower = (navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.connection && navigator.connection.saveData);
-    let tierName = host.dataset.liquidTier || (lowPower ? 'low' : (isMobile ? 'mid' : 'high'));
+    const picked = chooseTier(host, isMobile, reduced);
+    let tierName = picked.name;
     let tier = TIERS[tierName] || TIERS.high;
     const frozen = host.dataset.liquidTime != null ? parseFloat(host.dataset.liquidTime) : null;
+    canvas.classList.add('liquid-hero-webgl');
     canvas.style.touchAction = isMobile ? 'pan-y' : 'none';
+    host.dataset.liquidProfile = tierName;
 
-    let dead = false;
-    const fallback = () => {
+    /* First-frame shield: pre-render the same composition to a cheap 2D canvas.
+       It remains visible until two successful WebGL frames have rendered, and
+       reappears immediately on context loss, so a slow GPU never shows black. */
+    let poster = host.querySelector('canvas.liquid-hero-poster');
+    if (!poster) {
+      poster = document.createElement('canvas');
+      poster.className = 'liquid-hero-poster';
+      poster.setAttribute('aria-hidden', 'true');
+      canvas.before(poster);
+    }
+    const paintPoster = () => { try { drawStaticFallback(poster); } catch (_) {} };
+    paintPoster();
+
+    let dead = false, contextLosses = 0, warmFrames = 0;
+    const fallback = (reason = 'fallback') => {
       if (dead) return;
       dead = true;
       cancelAnimationFrame(raf);
-      const c2 = document.createElement('canvas');
-      c2.setAttribute('aria-hidden', 'true');
-      canvas.replaceWith(c2);
-      host.classList.add('is-static', 'is-ready');
-      drawStaticFallback(c2);
+      host.classList.remove('is-webgl-ready');
+      host.classList.add('is-static', 'is-ready', 'is-fallback');
+      host.dataset.liquidFallback = reason;
+      paintPoster();
+      writeLearnedPerf('safe', 0.62, reason);
     };
     let raf = 0;
-    const glOpts = { antialias: false, alpha: false, depth: false, stencil: false, premultipliedAlpha: false, preserveDrawingBuffer: frozen != null, powerPreference: 'high-performance' };
+    const glOpts = { antialias: false, alpha: false, depth: false, stencil: false, premultipliedAlpha: false, preserveDrawingBuffer: frozen != null, powerPreference: tierName === 'high' || tierName === 'mid' ? 'high-performance' : 'low-power' };
     const gl = canvas.getContext('webgl2', glOpts) || canvas.getContext('webgl', glOpts);
-    if (!gl) { fallback(); return; }
+    if (!gl) { fallback('no-webgl'); return; }
     const hp = gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT);
-    if (!hp || hp.precision < 16) { fallback(); return; }
+    if (!hp || hp.precision < 16) { fallback('low-precision'); return; }
+    try {
+      const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+      const renderer = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || '') : '';
+      const maxTex = gl.getParameter(gl.MAX_TEXTURE_SIZE) || 0;
+      if (/swiftshader|llvmpipe|software/i.test(renderer) || (maxTex && maxTex < 4096)) tierName = 'safe';
+      else if (maxTex && maxTex < 8192 && tierRank[tierName] > tierRank.low) tierName = 'low';
+      tier = TIERS[tierName]; host.dataset.liquidProfile = tierName;
+    } catch (_) {}
 
     /* GL resources */
     let prog = null, U = {}, texSharp = null, texSoft = null, buf = null, texW = 0, shown = false;
     const wordSharp = document.createElement('canvas');
     const wordSoft = document.createElement('canvas');
     function buildWordTextures(neededPx) {
-      const want = neededPx > 1700 ? 4096 : 2048;
+      const cap = tierName === 'high' ? 4096 : tierName === 'mid' ? 2048 : 1024;
+      const want = Math.min(cap, neededPx > 1700 ? 4096 : 2048);
       if (want === texW) return;
       texW = want;
       wordSharp.width = texW; wordSharp.height = texW / 4;
@@ -744,8 +806,9 @@ void main(){
       uploadCanvas(gl, texSoft, wordSoft, false);
     }
     const parallel = gl.getExtension('KHR_parallel_shader_compile');
-    let job = null;
+    let job = null, compileStarted = performance.now();
     function initGL() {
+      compileStarted = performance.now();
       if (prog) { gl.deleteProgram(prog); prog = null; }
       const src = shaderSources(gl, tier);
       job = startProgram(gl, src.vs, src.fs);
@@ -774,7 +837,7 @@ void main(){
     initGL();
 
     /* Size and adaptive resolution */
-    let vw = 0, vh = 0, quality = 0.85, L = computeLayout(1.7), cssW = 0, cssH = 0;
+    let vw = 0, vh = 0, quality = Math.max(0.5, Math.min(1, (picked.learned && picked.learned.tier === tierName ? picked.learned.quality : tier.startQ))), L = computeLayout(1.7), cssW = 0, cssH = 0;
     function resize() {
       if (!cssW) { const b = canvas.getBoundingClientRect(); cssW = b.width; cssH = b.height; }
       const r = { width: cssW, height: cssH };
@@ -921,27 +984,44 @@ void main(){
     }
 
     /* Loop, visibility and adaptive quality */
-    let visible = true, prev = 0, lastDraw = 0, acc = 0, frames = 0, calm = 0;
-    const minInterval = 1000 / tier.fps - 2;
+    let visible = true, prev = 0, lastDraw = 0, acc = 0, frames = 0, calm = 0, slowWindows = 0, longTaskPressure = 0;
+    let minInterval = 1000 / tier.fps - 2;
+    let perfObserver = null;
+    try {
+      if ('PerformanceObserver' in window && PerformanceObserver.supportedEntryTypes?.includes('longtask')) {
+        perfObserver = new PerformanceObserver(list => { longTaskPressure += list.getEntries().length; });
+        perfObserver.observe({ entryTypes: ['longtask'] });
+      }
+    } catch (_) {}
+    function dropTier(reason) {
+      if (tierName === 'safe') { quality = Math.max(.5, quality * .86); resize(); writeLearnedPerf(tierName, quality, reason); return; }
+      tierName = lowerTier(tierName); tier = TIERS[tierName]; host.dataset.liquidProfile = tierName;
+      quality = Math.min(quality, tier.startQ); minInterval = 1000 / tier.fps - 2;
+      initGL(); vw = vh = 0; slowWindows = 0; calm = 0;
+      writeLearnedPerf(tierName, quality, reason);
+    }
     function adapt(dtMs) {
       acc += dtMs; frames++;
       if (acc < 1000) return;
-      const avg = acc / frames; acc = 0; frames = 0;
+      const avg = acc / Math.max(1, frames); acc = 0; frames = 0;
       const target = 1000 / tier.fps;
-      if (avg > target * 1.3 && quality > 0.5) { quality = Math.max(0.5, quality * 0.85); calm = 0; resize(); }
-      else if (avg > target * 1.5 && tierName !== 'low') {
-        // Still too slow at half resolution: drop to a cheaper shader tier.
-        tierName = tierName === 'high' ? 'mid' : 'low'; tier = TIERS[tierName];
-        initGL();
-        quality = 0.75; vw = vh = 0;
-      }
-      else if (avg < target * 1.08) { if (++calm >= 3 && quality < 1) { quality = Math.min(1, quality * 1.08); calm = 0; resize(); } }
-      else calm = 0;
+      const pressured = longTaskPressure > 0; longTaskPressure = Math.max(0, longTaskPressure - 1);
+      if (avg > target * 1.32 || pressured) slowWindows++; else slowWindows = Math.max(0, slowWindows - 1);
+      if ((avg > target * 1.25 || pressured) && quality > 0.52) {
+        quality = Math.max(0.52, quality * (pressured ? 0.80 : 0.86)); calm = 0; resize(); writeLearnedPerf(tierName, quality, pressured ? 'longtask' : 'frame-time');
+      } else if (slowWindows >= 2) {
+        dropTier('sustained-slow');
+      } else if (avg < target * 0.92 && !pressured) {
+        if (++calm >= 4 && quality < tier.startQ) { quality = Math.min(tier.startQ, quality * 1.05); calm = 0; resize(); }
+      } else calm = 0;
     }
-    const reveal = () => { if (!shown) { shown = true; host.classList.add('is-ready'); } };
+    const reveal = () => {
+      if (++warmFrames < 2) return;
+      if (!shown) { shown = true; host.classList.add('is-ready', 'is-webgl-ready'); host.classList.remove('is-fallback'); writeLearnedPerf(tierName, quality, 'stable-first-frame'); }
+    };
     function frame(now) {
       raf = requestAnimationFrame(frame);
-      if (!programReady()) { if (failed) fallback(); return; }
+      if (!programReady()) { if (failed) fallback('shader-failed'); else if (performance.now() - compileStarted > 5000) fallback('compile-timeout'); return; }
       if (!visible || document.hidden) { prev = 0; return; }
       if (lastDraw && now - lastDraw < minInterval) return;
       const dtMs = prev ? now - prev : 16.7;
@@ -967,6 +1047,7 @@ void main(){
     const ro = new ResizeObserver(es => {
       const cr = es[0] && es[0].contentRect;
       if (cr) { cssW = cr.width; cssH = cr.height; }
+      if (!shown) paintPoster();
       if (reduced || frozen != null) renderStill(frozen || 0);
     });
     ro.observe(canvas);
@@ -1008,8 +1089,19 @@ void main(){
     window.addEventListener('pointercancel', onUp);
 
     /* Context loss */
-    const onLost = e => { e.preventDefault(); cancelAnimationFrame(raf); raf = 0; };
-    const onRestored = () => { buf = texSharp = texSoft = null; initGL(); vw = vh = 0; start(); };
+    const onLost = e => {
+      e.preventDefault(); contextLosses++; cancelAnimationFrame(raf); raf = 0;
+      host.classList.remove('is-webgl-ready'); host.classList.add('is-degraded'); paintPoster();
+      const next = contextLosses > 1 ? 'safe' : lowerTier(tierName);
+      writeLearnedPerf(next, Math.min(quality, .66), 'context-lost');
+      if (contextLosses > 1) fallback('repeated-context-loss');
+    };
+    const onRestored = () => {
+      if (dead) return;
+      tierName = contextLosses ? lowerTier(tierName) : tierName; tier = TIERS[tierName];
+      host.dataset.liquidProfile = tierName; quality = Math.min(quality, tier.startQ);
+      buf = texSharp = texSoft = null; prog = null; job = null; initGL(); vw = vh = 0; warmFrames = 0; shown = false; start();
+    };
     canvas.addEventListener('webglcontextlost', onLost);
     canvas.addEventListener('webglcontextrestored', onRestored);
 
@@ -1022,12 +1114,13 @@ void main(){
 
     const inst = { host, relayout() { texW = 0; vw = vh = 0; if (reduced || frozen != null) renderStill(frozen || 0); }, boing: () => boing(isMobile ? 0.70 : 0.60), destroy() { try { host._swLiquidDestroy?.(); } catch (_) {} } };
     instances.add(inst);
-    host._swLiquidDebug = { st, get quality() { return quality; }, get size() { return [vw, vh]; }, get tier() { return tierName; }, render: renderStill };
+    host._swLiquidDebug = { st, get quality() { return quality; }, get size() { return [vw, vh]; }, get tier() { return tierName; }, get profile() { return host.dataset.liquidProfile; }, render: renderStill };
     host._swLiquidDestroy = () => {
       cancelAnimationFrame(raf); ro.disconnect(); io.disconnect();
       canvas.removeEventListener('pointerdown', onDown); host.removeEventListener('pointermove', onHover); host.removeEventListener('pointerleave', onLeave);
       window.removeEventListener('pointermove', onDrag); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp);
       canvas.removeEventListener('webglcontextlost', onLost); canvas.removeEventListener('webglcontextrestored', onRestored);
+      try { perfObserver?.disconnect(); } catch (_) {}
       instances.delete(inst);
       delete host.dataset.liquidReady;
     };

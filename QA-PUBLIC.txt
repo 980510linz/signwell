@@ -1,0 +1,11 @@
+SIGN WELL R9.2.1 · PUBLIC SPLIT QA
+
+Canonical required files missing: 0
+HTML local refs checked: 132
+HTML local refs missing: 0
+JavaScript syntax checked: 9; errors: 0
+JSON parsed: 3; errors: 0
+Hero JS byte-identical Public/CMS: True
+Hero CSS byte-identical Public/CMS: True
+
+RESULT: PASS

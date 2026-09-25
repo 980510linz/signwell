@@ -1,0 +1,35 @@
+SIGN WELL R9.6 QA
+========================================================================
+PASS  01-main-shell-brand-markup
+PASS  02-brand-centered-content-hug
+PASS  03-newsletter-qr-removed
+PASS  04-share-old-labels-removed
+PASS  05-share-brand-only-label
+PASS  06-all-public-html-mobile-axis-lock · 12 html
+PASS  07-core-mobile-overflow-guard
+PASS  preserve-assets/signwell-liquid-hero.js
+PASS  preserve-assets/signwell-liquid-hero.css
+PASS  preserve-assets/social/signwell-share-r9-4-20260925.jpg
+PASS  preserve-assets/social/signwell-share-square-r9-4-20260925.jpg
+PASS  preserve-assets/bundles/article-id-card.js
+PASS  preserve-assets/components/styles/article-id-card.css
+PASS  preserve-assets/bundles/public-liquid-navigation.js
+PASS  preserve-assets/components/styles/public-liquid-dock.css
+PASS  08-r95-3d-code-preserved
+PASS  09-adaptive-hero-preserved
+PASS  10-social-preview-preserved
+PASS  11-cms-share-is-shell
+PASS  12-cms-no-share-redirect-entry
+PASS  13-cms-cache-bust-r96
+PASS  14-codegs-byte-identical-r95
+PASS  15-article-card-js-sync
+PASS  16-article-card-css-sync
+PASS  17-dock-css-sync
+PASS  18-json-parse
+PASS  19-public-local-assets-present
+PASS  20-js-syntax
+PASS  21-codegs-syntax
+PASS  22-sw-cache-r96
+PASS  23-home-no-topic-section
+
+TOTAL 31/31 PASS

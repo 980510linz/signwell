@@ -1,0 +1,5 @@
+SIGN WELL R9.6 Public
+Deploy to the Public site root. Prefer SAFE DEPLOY on a live site to preserve current article/topic/runtime data.
+
+
+R9.7 note: non-home pages now include the subtle cubic ambient background layer (assets/signwell-ambient-pages.css/js).

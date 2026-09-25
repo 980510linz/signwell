@@ -1,4 +1,4 @@
-/* SIGN WELL · 欣緯生醫 — Public core (release 24.36.3 · ui 25.1 · newsletter cleanup R8B · R9.2.1 Hero Studio)
+/* SIGN WELL · 欣緯生醫 — Public core (release 24.36.3 · ui 25.1 · newsletter cleanup R8B · R9.3 Adaptive Hero Studio)
    Routing, rendering, search, newsletter/OTP bridge and the Liquid dock.
    Backend protocol (Apps Script iframe bridge) is unchanged from 24.36.3. */
 (() => {
@@ -156,16 +156,19 @@
     resolve: resolveArticleRef,
     articleIdKey,
     articleIdOf,
-    version: "R8G",
+    version: "R9.6",
   };
 
   const QRCODE_URL = "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
   const canDesktopTilt = () =>
-    !!(
-      window.innerWidth >= 980 &&
-      matchMedia("(pointer:fine)").matches &&
-      !reducedMQ.matches
-    );
+    !!(window.innerWidth >= 980 && !reducedMQ.matches);
+  const canPointerTilt = () => {
+    try {
+      return canDesktopTilt() && (matchMedia("(any-pointer:fine)").matches || matchMedia("(any-hover:hover)").matches);
+    } catch (_) {
+      return false;
+    }
+  };
   function loadScript(url, test) {
     if (typeof test === 'function' && test()) return Promise.resolve();
     return new Promise((resolve, reject) => {
@@ -229,7 +232,7 @@
       });
       setTimeout(() => {
         protectVisualAsset(el);
-        $('canvas,img', el).forEach((node) => {
+        $$('canvas,img', el).forEach((node) => {
           node.setAttribute('draggable', 'false');
           node.setAttribute('aria-hidden', 'true');
           Object.assign(node.style, {
@@ -252,7 +255,9 @@
     const ambient = scene ? scene.querySelector('.sw3d-ambient') : null;
     const shadow = scene ? scene.querySelector('.sw3d-shadow') : null;
     let targetX = 0, targetY = 0, currentX = 0, currentY = 0, active = false;
-    const maxX = 13, maxY = 16;
+    const maxX = 11.5, maxY = 14.5;
+    const phase = card.closest('.newsletter-scene') ? 1.35 : 0.42;
+    function wideEnabled() { return canDesktopTilt(); }
     function applyVars(nx, ny) {
       const mx = 50 + nx * 32;
       const my = 44 + ny * 30;
@@ -270,7 +275,7 @@
       }
     }
     function setTarget(clientX, clientY) {
-      if (!canDesktopTilt()) return reset(true);
+      if (!wideEnabled()) return reset(true);
       const r = card.getBoundingClientRect();
       const nx = clamp(((clientX - r.left) / r.width) * 2 - 1, -1, 1);
       const ny = clamp(((clientY - r.top) / r.height) * 2 - 1, -1, 1);
@@ -285,6 +290,7 @@
       targetX = 0;
       targetY = 0;
       applyVars(0, 0);
+      if (scene) scene.dataset.tiltEnabled = wideEnabled() ? '1' : '0';
       if (immediate) {
         currentX = 0;
         currentY = 0;
@@ -295,19 +301,32 @@
       if (scene) scene.dataset.tilt = '0';
     }
     card.addEventListener('pointerenter', (e) => {
-      if (!canDesktopTilt() || e.pointerType !== 'mouse') return;
+      if (!wideEnabled() || !['mouse','pen'].includes(e.pointerType)) return;
       active = true;
       setTarget(e.clientX, e.clientY);
     });
     card.addEventListener('pointermove', (e) => {
-      if (!canDesktopTilt() || e.pointerType !== 'mouse') return;
+      if (!wideEnabled() || !['mouse','pen'].includes(e.pointerType)) return;
       active = true;
       setTarget(e.clientX, e.clientY);
     });
-    card.addEventListener('pointerleave', () => reset(false));
+    card.addEventListener('pointerleave', () => { active = false; });
     window.addEventListener('resize', () => reset(true));
-    (function animate() {
-      const ease = active ? 0.11 : 0.08;
+    document.addEventListener('visibilitychange', () => { if (document.hidden) active = false; });
+    (function animate(now) {
+      const enabled = wideEnabled();
+      if (scene) scene.dataset.tiltEnabled = enabled ? '1' : '0';
+      if (!enabled) {
+        targetX = 0; targetY = 0; applyVars(0, 0);
+      } else if (!active) {
+        /* Wide touch screens (e.g. iPad desktop mode) still receive a quiet 3D
+           presentation. Fine pointers override this idle pose immediately. */
+        const t = Number(now || performance.now());
+        targetX = Math.sin(t * 0.00042 + phase) * 2.25;
+        targetY = Math.cos(t * 0.00036 + phase * 1.7) * 3.1;
+        applyVars(targetY / maxY, -targetX / maxX);
+      }
+      const ease = active ? 0.115 : 0.055;
       currentX += (targetX - currentX) * ease;
       currentY += (targetY - currentY) * ease;
       card.style.setProperty('--sw3d-rx', currentX.toFixed(3) + 'deg');
@@ -317,8 +336,8 @@
     reset(true);
   }
   function mountPublicTiltAndQr() {
-    $('[data-tilt-card]').forEach(mountTiltCard);
-    $('[data-qr-lock]').forEach((el) => protectVisualAsset(el));
+    $$('[data-tilt-card]').forEach(mountTiltCard);
+    $$('[data-qr-lock]').forEach((el) => protectVisualAsset(el));
   }
 
 
@@ -630,7 +649,7 @@
       : dataReady
       ? `<div class="hero-stats"><div class="stat"><b data-count="${articles.length}">${articles.length}</b><span>篇文章</span></div><div class="stat"><b data-count="${activeTopics.length}">${activeTopics.length}</b><span>個主題</span></div><div class="stat"><b>${latest ? mmdd(latest.publishedAt || latest.updatedAt) : "—"}</b><span>最近更新</span></div></div>`
       : `<div class="hero-stats" aria-hidden="true"><div class="stat"><b class="skeleton" style="width:44px;height:28px"></b><span>篇文章</span></div><div class="stat"><b class="skeleton" style="width:34px;height:28px"></b><span>個主題</span></div><div class="stat"><b class="skeleton" style="width:64px;height:28px"></b><span>最近更新</span></div></div>`;
-    app.innerHTML = `<section class="sw-liquid-hero" data-liquid-hero aria-label="SIGN WELL Liquid Glass 動態主視覺"><canvas aria-hidden="true"></canvas><div class="liquid-caustic" aria-hidden="true"></div><div class="liquid-grain" aria-hidden="true"></div><div class="liquid-static-word" aria-hidden="true">SIGN WELL</div><div class="liquid-hero-caption" aria-hidden="true">Explore</div></section><section class="hero" data-hero><div class="hero-copy"><div class="hero-badge"><i aria-hidden="true"></i>${esc(site.homeEyebrow || "SIGN WELL")}</div><h1 aria-label="${esc(t1 + t2)}"><span class="l1" aria-hidden="true">${esc(t1)}</span><span class="l2" aria-hidden="true">${esc(t2)}</span></h1><p>${esc(site.homeSubtitle || "")}</p>${stats}</div><aside class="hero-card"><span class="quote-mark" aria-hidden="true">“</span><span class="note-chip">EDITORIAL NOTE</span><strong>${esc(site.homeCardTitle || "醫學不只是答案。")}</strong><p>${esc(site.homeCardBody || "")}</p>${latest ? `<div class="hero-latest" data-article="${esc(latest.slug)}"><div class="thumb">${coverMedia(latest, { label: false, eager: true })}</div><div><small>最新發布</small><b>${esc(latest.title || "")}</b></div><span class="go" aria-hidden="true">${ICON.arrow}</span></div>` : ""}</aside></section><section class="section" id="latest">${sectionHead("01", site.dailyEyebrow || "最近整理", site.dailyTitle || "最新文章", `<span class="count">${dataReady ? `${articles.length} 篇已發布` : ""}</span>`)}<div class="bento">${!dataReady ? skeletonCards(3) : lead.length ? lead.map((a, i) => articleCard(a, { eager: i === 0 })).join("") : emptyPanel("目前尚無已發布文章。CMS 完整發布後會自動出現。")}</div>${rest.length ? `<div class="recent-list" aria-label="最近發布">${rest.map(recentRow).join("")}</div>` : ""}</section><section class="section">${sectionHead("02", site.topicsEyebrow || "知識地圖", site.topicsTitle || "主題分類")}<div class="topic-grid">${activeTopics.slice(0, 6).map(topicCard).join("") || (dataReady ? emptyPanel("尚未建立主題。") : "")}</div></section>`;
+    app.innerHTML = `<section class="sw-liquid-hero" data-liquid-hero aria-label="SIGN WELL Liquid Glass 動態主視覺"><canvas aria-hidden="true"></canvas><div class="liquid-caustic" aria-hidden="true"></div><div class="liquid-grain" aria-hidden="true"></div><div class="liquid-static-word" aria-hidden="true">SIGN WELL</div><div class="liquid-hero-caption" aria-hidden="true">Explore</div></section><section class="hero" data-hero><div class="hero-copy"><div class="hero-badge"><i aria-hidden="true"></i>${esc(site.homeEyebrow || "SIGN WELL")}</div><h1 aria-label="${esc(t1 + t2)}"><span class="l1" aria-hidden="true">${esc(t1)}</span><span class="l2" aria-hidden="true">${esc(t2)}</span></h1><p>${esc(site.homeSubtitle || "")}</p>${stats}</div><aside class="hero-card"><span class="quote-mark" aria-hidden="true">“</span><span class="note-chip">EDITORIAL NOTE</span><strong>${esc(site.homeCardTitle || "醫學不只是答案。")}</strong><p>${esc(site.homeCardBody || "")}</p>${latest ? `<div class="hero-latest" data-article="${esc(latest.slug)}"><div class="thumb">${coverMedia(latest, { label: false, eager: true })}</div><div><small>最新發布</small><b>${esc(latest.title || "")}</b></div><span class="go" aria-hidden="true">${ICON.arrow}</span></div>` : ""}</aside></section><section class="section" id="latest">${sectionHead("01", site.dailyEyebrow || "最近整理", site.dailyTitle || "最新文章", `<span class="count">${dataReady ? `${articles.length} 篇已發布` : ""}</span>`)}<div class="bento">${!dataReady ? skeletonCards(3) : lead.length ? lead.map((a, i) => articleCard(a, { eager: i === 0 })).join("") : emptyPanel("目前尚無已發布文章。CMS 完整發布後會自動出現。")}</div>${rest.length ? `<div class="recent-list" aria-label="最近發布">${rest.map(recentRow).join("")}</div>` : ""}</section>`;
     bindCards();
   }
 
@@ -686,7 +705,7 @@
     const url = new URL("index.html", location.href).href;
     const title = site.siteTitle || "SIGN WELL · 欣緯生醫";
     const enc = encodeURIComponent;
-    app.innerHTML = `<header class="page-hero"><div class="eyebrow">${esc(site.shareEyebrow || "分享我們")}</div><h1>${esc(site.shareTitle || "把 SIGN WELL 分享給需要的人。")}</h1><p>${esc(site.shareSubtitle || "文章分享與 QR Code 已統一放在每篇文章的 Article ID Card。")}</p></header><div class="sw3d-scene share-scene"><div class="sw3d-ambient" aria-hidden="true"></div><div class="sw3d-shadow" aria-hidden="true"></div><section class="share-card sw3d-card" data-tilt-card><div class="share-grid"><div class="share-main"><div class="kicker">SIGN WELL</div><h1>分享網站</h1><div class="share-url"><input value="${esc(url)}" readonly id="shareSiteUrl" aria-label="網站連結"><button class="softbtn" id="copySite" type="button">${ICON.link} 複製連結</button></div><div class="share-buttons">${navigator.share ? `<button type="button" id="nativeShare">${ICON.share} 系統分享</button>` : ""}<a href="https://social-plugins.line.me/lineit/share?url=${enc(url)}" target="_blank" rel="noopener noreferrer"><i style="background:#06c755" aria-hidden="true"></i>分享到 LINE</a><a href="https://www.facebook.com/sharer/sharer.php?u=${enc(url)}" target="_blank" rel="noopener noreferrer"><i style="background:#1877f2" aria-hidden="true"></i>Facebook</a><a href="https://www.threads.net/intent/post?text=${enc(title + " " + url)}" target="_blank" rel="noopener noreferrer"><i style="background:#1d1d1f" aria-hidden="true"></i>Threads</a></div><p class="share-note">個別文章請開啟文章後使用「文章 ID 卡」。QR Code、作者、引用文獻、索引時間、GEO 與分享都集中在同一張卡片，不再維護另一套 QR 分享頁。</p></div><aside class="share-qr-pane"><div class="share-qr-card"><div class="share-qr-head"><span class="share-qr-kicker">SCAN TO OPEN</span><strong>SIGN WELL 網站 QR</strong></div><div class="share-qr" id="shareSiteQr" data-qr-lock aria-label="SIGN WELL 網站 QR Code"></div><div class="share-qr-id">SIGN WELL · SITE ROOT</div><div class="share-qr-hint">桌機版會跟隨滑鼠呈現類 3D 傾斜。QR 以 canvas 生成，不提供長按儲存。</div></div></aside></div></section></div>`;
+    app.innerHTML = `<div class="sw3d-scene share-scene"><div class="sw3d-ambient" aria-hidden="true"></div><div class="sw3d-shadow" aria-hidden="true"></div><section class="share-card sw3d-card" data-tilt-card><div class="share-grid"><div class="share-main"><div class="kicker">SIGN WELL</div><h1>分享網站</h1><div class="share-url"><input value="${esc(url)}" readonly id="shareSiteUrl" aria-label="網站連結"><button class="softbtn" id="copySite" type="button">${ICON.link} 複製連結</button></div><div class="share-buttons">${navigator.share ? `<button type="button" id="nativeShare">${ICON.share} 系統分享</button>` : ""}<a href="https://social-plugins.line.me/lineit/share?url=${enc(url)}" target="_blank" rel="noopener noreferrer"><i style="background:#06c755" aria-hidden="true"></i>分享到 LINE</a><a href="https://www.facebook.com/sharer/sharer.php?u=${enc(url)}" target="_blank" rel="noopener noreferrer"><i style="background:#1877f2" aria-hidden="true"></i>Facebook</a><a href="https://www.threads.net/intent/post?text=${enc(title + " " + url)}" target="_blank" rel="noopener noreferrer"><i style="background:#1d1d1f" aria-hidden="true"></i>Threads</a></div></div><aside class="share-qr-pane"><div class="share-qr-card"><div class="share-qr-brand"><strong>SIGN WELL</strong><span>欣緯生醫</span></div><div class="share-qr" id="shareSiteQr" data-qr-lock aria-label="SIGN WELL 網站 QR Code"></div></div></aside></div></section></div>`;
     $("#copySite").onclick = async () => {
       await copyText(url);
       toast("已複製網站連結");
@@ -778,7 +797,6 @@
   const NEWSLETTER_TERMS_VERSION = "2026-09-25-r1";
   function renderNewsletter() {
     const ready = backendConfig().enabled;
-    const qrUrl = new URL("newsletter.html", location.href).href;
     newsletterTermsRead = false;
     newsletterTermsReachedEnd = false;
     app.innerHTML = `<div class="newsletter-experience newsletter-experience-compact">
@@ -789,14 +807,13 @@
           <form class="newsletter-form" id="newsletterForm" novalidate><input id="newsletterEmail" type="email" autocomplete="email" inputmode="email" enterkeyhint="send" placeholder="you@example.com" aria-label="Email"><button class="newsletter-submit" id="newsletterSubmit" type="submit" disabled>寄送驗證碼</button></form>
           <label class="newsletter-consent locked" id="newsletterConsentLabel"><input id="newsletterConsent" type="checkbox" disabled><span>我已閱讀並同意 <button class="newsletter-terms-textlink" id="newsletterTermsOpen" type="button">服務條款</button>，並同意接收 SIGN WELL 電子報；隱私資料依 <a href="privacy.html" target="_blank" rel="noopener">隱私權政策</a> 處理。<small class="newsletter-terms-done" id="newsletterTermsState" aria-live="polite"></small></span></label>
           <div class="newsletter-status ${ready ? "" : "error"}" id="newsletterStatus" role="status">${ready ? "請先閱讀服務條款，再輸入 Email 完成訂閱。" : "後端設定尚未同步；完成 CMS 全站發布後會自動啟用。"}</div>
-        </div><aside class="share-qr-pane newsletter-qr-pane newsletter-qr-minimal"><div class="share-qr-card newsletter-qr-card-simple"><div class="share-qr" id="newsletterQr" data-qr-lock aria-label="訂閱 QR Code"></div></div></aside></div>
+        </div></div>
       </section></div>
     </div>`;
     $("#newsletterForm").onsubmit = (e) => { e.preventDefault(); requestOtp(); };
     $("#newsletterTermsOpen").onclick = openNewsletterTerms;
     $("#newsletterConsent").onchange = updateNewsletterGate;
     $("#newsletterEmail").oninput = updateNewsletterGate;
-    mountPageQr($("#newsletterQr"), qrUrl, { size: 184, dark: "#163149" });
     mountPublicTiltAndQr();
     ensureNewsletterTermsModal();
     updateNewsletterGate();

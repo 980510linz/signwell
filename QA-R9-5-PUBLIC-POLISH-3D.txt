@@ -1,0 +1,21 @@
+SIGN WELL R9.5 QA
+========================================================================
+PASS | Public HTML local refs
+PASS | Public JSON parse
+PASS | Homepage topic section removed
+PASS | Share explanatory note removed
+PASS | Obsolete QR hint removed
+PASS | Tilt mount NodeList bug fixed
+PASS | QR asset NodeList bug fixed
+PASS | Wide-screen idle 3D present
+PASS | Dock true capsule clipping
+PASS | R9.4 social image retained
+PASS | Open Graph metadata retained across Public HTML
+PASS | Adaptive Hero JS Public/CMS byte-identical
+PASS | Adaptive Hero safety runtime retained
+PASS | Article ID Card JS Public/CMS byte-identical
+PASS | Dock CSS Public/CMS byte-identical
+PASS | Code.gs unchanged
+PASS | Service Worker cache bumped
+
+TOTAL: 17/17 PASS

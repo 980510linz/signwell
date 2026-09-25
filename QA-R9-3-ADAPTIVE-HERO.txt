@@ -1,0 +1,17 @@
+SIGN WELL R9.3 ADAPTIVE HERO QA
+
+PASS · R9.3 version
+PASS · device learning cache
+PASS · 4 performance tiers
+PASS · poster first-frame shield
+PASS · context-loss recovery
+PASS · compile timeout
+PASS · frame adaptive
+PASS · hero cache-first
+PASS · poster CSS
+PASS · Public/CMS hero identical
+PASS · Public local refs
+PASS · CMS local refs
+
+HTML refs checked: Public 133, CMS 20
+JSON parsed: 3

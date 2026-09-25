@@ -1,0 +1,15 @@
+SIGN WELL R9.4 SOCIAL PREVIEW QA
+
+HTML files with canonical + OG + Twitter metadata: 12/12
+Local HTML src/href missing files: 0
+JavaScript syntax errors: 0
+JSON parse errors: 0
+Open Graph image: 1200x630 JPEG
+OG image path: assets/social/signwell-share-r9-4-20260925.jpg
+OG absolute image URL: https://980510linz.github.io/signwell/assets/social/signwell-share-r9-4-20260925.jpg
+Canonical site: https://signwell.com.tw/
+LINE/Facebook/Discord/Slack/iMessage: Open Graph
+X/Twitter: summary_large_image
+Service worker cache: canonical-r9-4-social-preview
+
+PASS

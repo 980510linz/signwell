@@ -618,3 +618,19 @@ html.sw-share-no-legacy-qr #refreshQr {
     backdrop-filter: none !important;
   }
 }
+
+
+/* R9.5 · true capsule dock thumb. Keep both x-axis end caps fully tangent. */
+.pager-thumb {
+  border-radius: calc((var(--dock-h) - 10px) / 2) !important;
+  overflow: hidden;
+  clip-path: inset(0 round calc((var(--dock-h) - 10px) / 2));
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+}
+.pager-thumb .lq-body,
+.pager-thumb .lq-lens {
+  border-radius: inherit !important;
+  overflow: hidden !important;
+  clip-path: inset(0 round calc((var(--dock-h) - 10px) / 2));
+}
+.pager-thumb .lq-body::before { border-radius: inherit !important; }
