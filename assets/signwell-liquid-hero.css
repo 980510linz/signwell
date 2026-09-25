@@ -1,0 +1,180 @@
+/* SIGN WELL · Jelly Glass Ring Hero R9.2.1 (ray-traced, 波光 background) */
+.sw-liquid-hero{
+  position:relative;
+  width:100%;
+  height:clamp(500px,69vh,740px);
+  margin:0 0 clamp(20px,4vw,54px);
+  border-radius:clamp(34px,4.4vw,62px);
+  overflow:hidden;
+  isolation:isolate;
+  background:
+    radial-gradient(circle at 16% 18%,rgba(198,225,247,.30),transparent 34%),
+    radial-gradient(circle at 84% 18%,rgba(238,226,248,.29),transparent 35%),
+    radial-gradient(circle at 56% 94%,rgba(253,233,241,.24),transparent 35%),
+    linear-gradient(145deg,#fff 0%,#f5faff 44%,#f7f3fb 73%,#fff7fa 100%);
+  box-shadow:0 34px 90px rgba(91,121,146,.085),inset 0 1px 0 rgba(255,255,255,.98);
+}
+.sw-liquid-hero::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:2;
+  pointer-events:none;
+  border-radius:inherit;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.92),
+    inset 0 30px 80px rgba(255,255,255,.09),
+    inset 0 -48px 84px rgba(255,255,255,.12);
+}
+.sw-liquid-hero::after{
+  content:"";
+  position:absolute;
+  z-index:3;
+  left:0;right:0;bottom:-1px;
+  height:22%;
+  pointer-events:none;
+  background:linear-gradient(180deg,rgba(248,251,253,0),rgba(248,251,253,.28) 68%,#f8fbfd 100%);
+}
+
+.sw-liquid-hero .liquid-caustic{
+  position:absolute;z-index:1;left:50%;top:66%;width:min(58%,720px);height:21%;
+  transform:translate(-50%,-50%) rotate(-7deg);pointer-events:none;border-radius:50%;
+  /* Wide ambient shadow / caustic with fully graduated edges. */
+  background:
+    radial-gradient(ellipse at 50% 54%,rgba(78,118,151,.125) 0%,rgba(100,143,177,.082) 24%,rgba(165,198,224,.040) 47%,rgba(230,211,239,.025) 63%,transparent 82%);
+  filter:blur(34px);opacity:.86;
+}
+.sw-liquid-hero .liquid-caustic::before{
+  content:"";position:absolute;inset:28% 18% 28% 18%;border-radius:50%;
+  background:radial-gradient(ellipse at center,rgba(62,95,122,.17) 0%,rgba(91,126,154,.09) 29%,rgba(147,178,203,.045) 51%,transparent 78%);
+  filter:blur(20px);opacity:.66;
+}
+.sw-liquid-hero .liquid-caustic::after{
+  content:"";position:absolute;inset:9% 5%;border-radius:50%;
+  background:
+    radial-gradient(ellipse at 39% 44%,rgba(186,222,247,.18),transparent 35%),
+    radial-gradient(ellipse at 67% 58%,rgba(235,213,247,.12),transparent 42%),
+    radial-gradient(ellipse at 55% 66%,rgba(255,224,238,.09),transparent 48%);
+  filter:blur(24px);opacity:.78;mix-blend-mode:screen;
+}
+
+.sw-liquid-hero canvas{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+  touch-action:none;
+  cursor:grab;
+  opacity:0;
+  transition:opacity .9s cubic-bezier(.2,.7,.2,1);
+}
+.sw-liquid-hero.is-ready canvas{opacity:1}
+/* The ring renders its own contact light and grain, so the CSS stand-ins stay hidden. */
+.sw-liquid-hero .liquid-caustic,.sw-liquid-hero .liquid-grain{display:none}
+.sw-liquid-hero canvas:active{cursor:grabbing}
+.sw-liquid-hero .liquid-hero-caption{
+  position:absolute;
+  z-index:4;
+  left:50%;
+  bottom:clamp(28px,4vh,46px);
+  transform:translateX(-50%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:9px;
+  pointer-events:none;
+  color:#8095a8;
+  opacity:.54;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.28em;
+  text-transform:uppercase;
+}
+.sw-liquid-hero .liquid-hero-caption::after{
+  content:"";
+  width:1px;
+  height:28px;
+  border-radius:999px;
+  background:linear-gradient(180deg,rgba(113,135,154,.62),rgba(113,135,154,0));
+  animation:swLiquidGuide 1.8s linear infinite;
+}
+.sw-liquid-hero .liquid-grain{
+  position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.08;
+  background-image:radial-gradient(rgba(92,116,137,.13) .45px,transparent .6px);
+  background-size:23px 23px;
+  mask-image:linear-gradient(to bottom,#000,transparent 88%);
+  -webkit-mask-image:linear-gradient(to bottom,#000,transparent 88%);
+}
+.sw-liquid-hero.is-static canvas{display:block}
+.sw-liquid-hero.is-static::before{
+  background:
+    radial-gradient(circle at 50% 44%,rgba(255,255,255,.72),transparent 34%),
+    linear-gradient(90deg,transparent,rgba(255,255,255,.24),transparent);
+}
+.sw-liquid-hero.is-static .liquid-static-word{display:none!important}
+.liquid-static-word{
+  display:none;
+  position:absolute;z-index:1;inset:0;place-items:center;
+  color:rgba(76,101,122,.72);
+  font-size:clamp(58px,10.8vw,142px);
+  font-weight:620;
+  letter-spacing:.090em;
+  text-shadow:0 1px 0 rgba(255,255,255,.8);
+}
+.sw-liquid-hero.is-static .liquid-static-word::before,
+.sw-liquid-hero.is-static .liquid-static-word::after{
+  content:"";
+  position:absolute;
+  left:50%;top:50%;
+  width:min(64vw,680px);
+  aspect-ratio:1.42;
+  border-radius:50%;
+  /* Fallback uses a masked glass band instead of a flat translucent border. */
+  background:
+    linear-gradient(112deg,
+      rgba(255,255,255,.02) 7%,
+      rgba(255,255,255,.20) 20%,
+      rgba(255,255,255,.92) 31%,
+      rgba(193,224,247,.36) 38%,
+      rgba(255,255,255,.08) 51%,
+      rgba(223,207,247,.16) 68%,
+      rgba(255,229,239,.18) 82%,
+      rgba(255,255,255,.03) 96%),
+    radial-gradient(circle at 76% 18%,rgba(255,255,255,.92),rgba(205,231,250,.20) 20%,transparent 42%),
+    radial-gradient(circle at 25% 80%,rgba(176,210,236,.24),transparent 38%),
+    linear-gradient(145deg,rgba(235,247,255,.40),rgba(255,255,255,.10) 42%,rgba(235,224,250,.22) 72%,rgba(255,236,243,.16));
+  -webkit-mask:radial-gradient(ellipse at center,transparent 0 36%,rgba(0,0,0,.30) 38%,#000 43%,#000 100%);
+  mask:radial-gradient(ellipse at center,transparent 0 36%,rgba(0,0,0,.30) 38%,#000 43%,#000 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.92);
+  backdrop-filter:blur(1.1px) saturate(170%);
+  -webkit-backdrop-filter:blur(1.1px) saturate(170%);
+  filter:
+    drop-shadow(0 22px 28px rgba(88,124,153,.075))
+    drop-shadow(0 7px 13px rgba(84,116,144,.055));
+  transform:translate(-50%,-50%) rotate(-24deg) skewX(-3deg);
+}
+.sw-liquid-hero.is-static .liquid-static-word::before{z-index:-1;clip-path:inset(0 0 50% 0)}
+.sw-liquid-hero.is-static .liquid-static-word::after{z-index:1;clip-path:inset(50% 0 0 0)}
+/* Secondary reflected stripe: resembles a broad studio softbox on polished glass. */
+.sw-liquid-hero.is-static .liquid-static-word{
+  text-shadow:0 1px 0 rgba(255,255,255,.82),0 0 18px rgba(255,255,255,.16);
+}
+@keyframes swLiquidGuide{
+  0%{transform:translateY(0) scaleY(.48);transform-origin:top;opacity:.20}
+  50%{transform:translateY(4px) scaleY(1);opacity:.72}
+  100%{transform:translateY(9px) scaleY(.72);opacity:0}
+}
+@media(max-width:760px){
+  
+  .sw-liquid-hero .liquid-caustic{width:72%;height:18%;filter:blur(25px);opacity:.72}
+
+.sw-liquid-hero canvas{touch-action:pan-y;cursor:default}
+  .sw-liquid-hero{height:clamp(430px,59vh,560px);border-radius:32px;margin-bottom:28px}
+  .sw-liquid-hero .liquid-hero-caption{bottom:24px}
+}
+@media(prefers-reduced-motion:reduce){
+  .sw-liquid-hero .liquid-hero-caption::after{animation:none}
+}
+
+.sw-liquid-hero.is-static .liquid-static-word::before,.sw-liquid-hero.is-static .liquid-static-word::after{display:none!important}

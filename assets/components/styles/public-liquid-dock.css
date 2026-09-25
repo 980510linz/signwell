@@ -1,140 +1,620 @@
-/* ============================================================
-   SIGN WELL Public v24.36.0 · Liquid Dock Performance + Clarity
-   Goals:
-   - clearer background through glass
-   - thumb animation stays compositor-first
-   - route transition animates content, never the dock itself
-   ============================================================ */
-:root{
-  --sw-dock-glass-a:rgba(255,255,255,.145);
-  --sw-dock-glass-b:rgba(247,252,255,.055);
-  --sw-dock-glass-c:rgba(255,255,255,.105);
-  --sw-dock-rim:rgba(255,255,255,.64);
-  --sw-dock-inner:rgba(255,255,255,.22);
-  --sw-dock-shadow:0 16px 38px rgba(55,96,128,.12),0 3px 10px rgba(55,96,128,.055);
-  --sw-dock-thumb-a:rgba(255,255,255,.34);
-  --sw-dock-thumb-b:rgba(242,250,255,.10);
-  --sw-dock-thumb-c:rgba(255,255,255,.22);
-  --sw-dock-ease:cubic-bezier(.18,.82,.2,1);
-  --sw-route-ease:cubic-bezier(.22,.76,.18,1);
+/* ==========================================================================
+   SIGN WELL Public · Liquid Glass control layer (ui 25.1)
+   Glass is used ONLY for navigation & controls: top chrome, dock, segmented
+   controls, sheets, toasts, reading tools. Content surfaces stay opaque.
+
+   Material recipe: low blur (keeps the backdrop legible) + high saturation,
+   angular specular rim (masked gradient border), inner light & thickness
+   shadows, soft drop shadow. On Chromium the backdrop is additionally
+   refracted through an SVG feDisplacementMap generated per element
+   (see assets/uiux-system.js → SWGlass). Other engines fall back to the
+   blur + rim material, which is visually close.
+   Technique inspired by open-source Liquid Glass explorations
+   (shuding/liquid-glass, rdev/liquid-glass-react); no code copied —
+   implementation is original vanilla CSS/JS.
+   ========================================================================== */
+
+:root {
+  --lg-blur: 7px;
+  --lg-sat: 190%;
+  --lg-bright: 1.05;
+  --lg-fill-top: rgba(255, 255, 255, 0.4);
+  --lg-fill-mid: rgba(255, 255, 255, 0.16);
+  --lg-fill-bot: rgba(255, 255, 255, 0.26);
+  --lg-rim-strong: rgba(255, 255, 255, 0.95);
+  --lg-rim-soft: rgba(255, 255, 255, 0.14);
+  --lg-drop: 0 14px 34px -12px rgba(22, 44, 70, 0.26), 0 3px 8px rgba(22, 44, 70, 0.07);
+  --lg-inner:
+    inset 0 1px 0.5px rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0.5px rgba(255, 255, 255, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 -12px 22px -16px rgba(70, 110, 150, 0.32),
+    inset 0 12px 20px -16px rgba(255, 255, 255, 0.95);
+  --sw-dock-ease: var(--spring-snappy);
+  --sw-route-ease: cubic-bezier(0.22, 0.76, 0.18, 1);
 }
 
-/* Keep the glass translucent: use a much smaller blur than the historical
-   24–30px layer. The background remains visibly legible through the lens. */
-.pager{
-  background:linear-gradient(152deg,var(--sw-dock-glass-a),var(--sw-dock-glass-b) 47%,var(--sw-dock-glass-c))!important;
-  -webkit-backdrop-filter:blur(5px) saturate(136%) brightness(1.018)!important;
-  backdrop-filter:blur(5px) saturate(136%) brightness(1.018)!important;
-  border:1px solid rgba(255,255,255,.34)!important;
-  box-shadow:var(--sw-dock-shadow),inset 0 1px 0 rgba(255,255,255,.58),inset 0 -1px 0 rgba(255,255,255,.12)!important;
-  contain:layout paint style;
-  isolation:isolate;
-  -webkit-font-smoothing:antialiased;
-  transform-style:preserve-3d;
+/* ---- Material ------------------------------------------------------------ */
+.brand-top,
+.top-actions .iconbtn,
+.pager,
+.searchbox,
+.otp-card,
+.toast,
+.btn-glass,
+.article-actions .softbtn,
+.article-actions .swid-open-btn,
+.sw-reader-panel,
+.sw-rail button,
+.sw-toc,
+.sw-sheet,
+.lg {
+  isolation: isolate;
+  border: 0;
+  background: linear-gradient(180deg, var(--lg-fill-top), var(--lg-fill-mid) 58%, var(--lg-fill-bot));
+  -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat)) brightness(var(--lg-bright));
+  backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat)) brightness(var(--lg-bright));
+  box-shadow: var(--lg-inner), var(--lg-drop);
 }
-.pager::before{
-  opacity:.72!important;
+/* containing block for the rim/sheen pseudo-elements (fixed elements keep their own) */
+.top-actions .iconbtn,
+.searchbox,
+.otp-card,
+.btn-glass,
+.article-actions .softbtn,
+.article-actions .swid-open-btn,
+.sw-rail button,
+.lg {
+  position: relative;
 }
-.pager::after{
-  box-shadow:inset 0 0 0 1px var(--sw-dock-inner),inset 0 5px 12px -12px rgba(255,255,255,.72)!important;
+/* Angular specular rim: bright top-left, quiet middle, catch-light bottom-right. */
+.brand-top::before,
+.top-actions .iconbtn::before,
+.pager::before,
+.searchbox::before,
+.otp-card::before,
+.toast::after,
+.btn-glass::before,
+.article-actions .softbtn::before,
+.article-actions .swid-open-btn::before,
+.sw-reader-panel::before,
+.sw-rail button::before,
+.sw-toc::before,
+.sw-sheet::before,
+.lg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  padding: 1.25px;
+  background: linear-gradient(
+    var(--lg-angle, 135deg),
+    var(--lg-rim-strong) 0%,
+    rgba(255, 255, 255, 0.35) 22%,
+    var(--lg-rim-soft) 42%,
+    rgba(255, 255, 255, 0) 58%,
+    rgba(255, 255, 255, 0.5) 86%,
+    rgba(255, 255, 255, 0.85) 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
 }
-.pager-thumb{
-  background:linear-gradient(158deg,var(--sw-dock-thumb-a),var(--sw-dock-thumb-b) 56%,var(--sw-dock-thumb-c))!important;
-  -webkit-backdrop-filter:blur(.7px) saturate(142%) brightness(1.035)!important;
-  backdrop-filter:blur(.7px) saturate(142%) brightness(1.035)!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.84),inset 0 -8px 16px -14px rgba(80,140,185,.36),0 7px 17px rgba(48,91,124,.14),0 1px 2px rgba(48,91,124,.08)!important;
-  will-change:transform;
-  backface-visibility:hidden;
-  -webkit-backface-visibility:hidden;
+/* Soft sheen / caustic light */
+.brand-top::after,
+.top-actions .iconbtn::after,
+.pager::after,
+.btn-glass::after,
+.sw-rail button::after,
+.lg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(90% 70% at 18% -10%, rgba(255, 255, 255, 0.7), transparent 55%),
+    radial-gradient(70% 60% at 100% 120%, rgba(255, 255, 255, 0.35), transparent 60%);
+  opacity: 0.7;
+  pointer-events: none;
 }
-.pager-thumb::before{opacity:.72!important}
-.thumb-spec{
-  filter:none!important;
-  opacity:.62!important;
-  height:6px!important;
-  transform:translate3d(0,var(--spec,0px),0)!important;
+.brand-top > *,
+.top-actions .iconbtn > *,
+.btn-glass > *,
+.sw-rail button > * {
+  position: relative;
+  z-index: 2;
 }
-.nav-item{
-  transition:color .16s linear,opacity .16s linear,transform .22s var(--sw-dock-ease)!important;
-  backface-visibility:hidden;
-  -webkit-backface-visibility:hidden;
-}
-.nav-item svg{transition:transform .24s var(--sw-dock-ease)!important}
-.nav-item.active svg{transform:translate3d(0,-1px,0) scale(1.075)!important}
 
-/* Clean Public build: no ambient/grain/cursor animation layers exist. */
-body.pager-dragging .pager{
-  -webkit-backdrop-filter:blur(3px) saturate(132%) brightness(1.012)!important;
-  backdrop-filter:blur(3px) saturate(132%) brightness(1.012)!important;
-  box-shadow:0 14px 34px rgba(55,96,128,.14),0 2px 7px rgba(55,96,128,.055),inset 0 1px 0 rgba(255,255,255,.62)!important;
+/* Interactive glass: gentle press "squish" */
+.brand-top,
+.top-actions .iconbtn,
+.btn-glass,
+.article-actions .softbtn,
+.article-actions .swid-open-btn,
+.sw-rail button {
+  transition: transform 0.5s var(--spring), box-shadow 0.3s var(--ease);
+}
+.brand-top:hover,
+.top-actions .iconbtn:hover,
+.btn-glass:hover,
+.article-actions .softbtn:hover,
+.article-actions .swid-open-btn:hover,
+.sw-rail button:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: var(--lg-inner), 0 18px 38px -14px rgba(22, 44, 70, 0.3), 0 3px 8px rgba(22, 44, 70, 0.07);
+}
+.brand-top:active,
+.top-actions .iconbtn:active,
+.btn-glass:active,
+.article-actions .softbtn:active,
+.article-actions .swid-open-btn:active,
+.sw-rail button:active {
+  transform: scale(0.94);
+  transition-duration: 0.18s;
 }
 
-/* Main pages stay in one document after the first load. Only #app transitions;
-   the dock remains optically stable and never participates in the page snapshot. */
-html.sw-public-spa-v2436{view-transition-name:none}
-html.sw-public-spa-v2436 #app{
-  view-transition-name:sw-public-content;
+.btn-glass {
+  color: var(--ink);
 }
-html.sw-public-spa-v2436 .pager{view-transition-name:sw-public-dock}
-::view-transition-group(sw-public-content){animation-duration:250ms;animation-timing-function:var(--sw-route-ease)}
-::view-transition-old(sw-public-content){animation:sw-route-old .16s ease both}
-::view-transition-new(sw-public-content){animation:sw-route-new .25s var(--sw-route-ease) both}
-::view-transition-group(sw-public-dock){animation:none!important}
-::view-transition-old(sw-public-dock),::view-transition-new(sw-public-dock){animation:none!important;mix-blend-mode:normal}
-@keyframes sw-route-old{to{opacity:.18;transform:translate3d(var(--sw-route-old-x,-9px),0,0) scale(.994)}}
-@keyframes sw-route-new{from{opacity:.12;transform:translate3d(var(--sw-route-new-x,12px),0,0) scale(.992)}to{opacity:1;transform:none}}
+.article-actions .softbtn,
+.article-actions .swid-open-btn {
+  min-height: 46px;
+  padding: 0 18px;
+  border-radius: 999px;
+  color: var(--ink);
+  font-weight: 750;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.article-actions .swid-open-btn small {
+  font-weight: 650;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
 
-/* Fallback for browsers without View Transitions. */
-html.sw-route-fallback-in #app{animation:sw-route-fallback-in .24s var(--sw-route-ease) both}
-@keyframes sw-route-fallback-in{from{opacity:.28;transform:translate3d(var(--sw-route-new-x,10px),0,0) scale(.995)}to{opacity:1;transform:none}}
+/* Scrolled state: brand pill tightens, stays legible over content. */
+html.sw-scrolled .brand-top {
+  --lg-fill-top: rgba(255, 255, 255, 0.62);
+  --lg-fill-mid: rgba(255, 255, 255, 0.42);
+  --lg-fill-bot: rgba(255, 255, 255, 0.5);
+}
+html.sw-scrolled .top-actions .iconbtn {
+  --lg-fill-top: rgba(255, 255, 255, 0.62);
+  --lg-fill-mid: rgba(255, 255, 255, 0.42);
+  --lg-fill-bot: rgba(255, 255, 255, 0.5);
+}
 
-/* iOS benefits most from a shallow blur. Heavy backdrop-filter on a large fixed
-   element is a common source of dropped frames while the finger is moving. */
-@supports (-webkit-touch-callout:none){
-  .pager{
-    -webkit-backdrop-filter:blur(4px) saturate(132%) brightness(1.015)!important;
-    backdrop-filter:blur(4px) saturate(132%) brightness(1.015)!important;
+/* ---- Dock ---------------------------------------------------------------- */
+.pager {
+  --lg-blur: 6px;
+  --lg-fill-top: rgba(255, 255, 255, 0.46);
+  --lg-fill-mid: rgba(255, 255, 255, 0.2);
+  --lg-fill-bot: rgba(255, 255, 255, 0.32);
+  transform: translateX(-50%) translateY(var(--dock-y, 0px)) scale(var(--dock-s, 1));
+  transform-origin: 50% 100%;
+  transition: transform 0.7s var(--spring), box-shadow 0.35s var(--ease);
+  contain: layout style;
+  -webkit-font-smoothing: antialiased;
+}
+html.sw-dock-mini .pager {
+  --dock-s: 0.8;
+  --dock-y: 6px;
+}
+.pager .nav-item span,
+.pager .nav-item svg {
+  transition: opacity 0.25s var(--ease), transform 0.55s var(--spring);
+}
+html.sw-dock-mini .pager .nav-item span {
+  opacity: 0;
+  transform: translateY(6px) scale(0.8);
+}
+html.sw-dock-mini .pager .nav-item svg {
+  transform: translateY(8px) scale(1.14);
+}
+.nav-item {
+  transition: color 0.2s linear;
+}
+.nav-item:focus-visible {
+  outline: none;
+}
+.pager:focus-visible {
+  outline: 2px solid rgba(63, 127, 179, 0.55);
+  outline-offset: 4px;
+}
+.pager.is-dragging .nav-item.active:not(.is-hover) {
+  color: #6b7f92;
+}
+.pager .nav-item.is-hover {
+  color: var(--ink);
+}
+
+/* The capsule (thumb): translation is driven by JS (--tx); press/stretch
+   scale lives on .lq-body so both can animate independently. */
+.pager-thumb,
+.lg-seg-thumb {
+  transform: translate3d(var(--tx, 5px), 0, 0);
+  transition: transform 0.62s var(--spring-snappy), width 0.5s var(--spring-snappy);
+  will-change: transform;
+}
+.pager.is-dragging .pager-thumb,
+.lg-seg.is-dragging .lg-seg-thumb,
+.no-anim .pager-thumb,
+.no-anim .lg-seg-thumb {
+  transition: none;
+}
+.lq-body {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  transform: scale(calc(var(--ps, 1) * var(--sx, 1)), calc(var(--ps, 1) * var(--sy, 1)));
+  transition: transform 0.55s var(--spring), background 0.25s var(--ease), box-shadow 0.3s var(--ease);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.72));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -6px 12px -8px rgba(70, 110, 150, 0.3),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.55),
+    0 6px 16px -6px rgba(22, 44, 70, 0.28),
+    0 1px 2px rgba(22, 44, 70, 0.08);
+}
+.lq-body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  padding: 1.25px;
+  background: linear-gradient(135deg, #fff, rgba(255, 255, 255, 0.2) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, 0.9));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+.lq-body .thumb-spec {
+  z-index: 4;
+  opacity: 0.75;
+}
+.lq-lens {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+.lq-lens .lq-lens-inner {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: auto;
+  padding: 0;
+  margin: 0;
+  pointer-events: none;
+  will-change: transform;
+  transition: transform 0.62s var(--spring-snappy);
+}
+.is-dragging .lq-lens .lq-lens-inner,
+.no-anim .lq-lens .lq-lens-inner {
+  transition: none;
+}
+.lq-lens-inner .nav-item,
+.lq-lens-inner button {
+  color: var(--ink) !important;
+}
+/* pressed / dragging: the capsule swells into a clear refracting lens */
+.pager.is-pressed .lq-body,
+.lg-seg.is-pressed .lq-body {
+  --ps: 1.2;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.14) 60%, rgba(255, 255, 255, 0.3));
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 1),
+    inset 0 -1.5px 1px rgba(255, 255, 255, 0.7),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+    inset 0 -10px 18px -10px rgba(70, 110, 150, 0.35),
+    inset 0 10px 16px -10px rgba(255, 255, 255, 1),
+    0 14px 30px -10px rgba(22, 44, 70, 0.35),
+    0 2px 6px rgba(22, 44, 70, 0.1);
+}
+.pager.is-pressed .lq-lens,
+.lg-seg.is-pressed .lq-lens {
+  filter: var(--lq-refract, none);
+}
+.pager.is-pressed {
+  --lg-fill-top: rgba(255, 255, 255, 0.5);
+}
+
+/* Real items are hidden under the capsule (the lens shows the magnified copy).
+   --hole-l / --hole-r are driven by the capsule's rendered position. */
+.lg-hole {
+  -webkit-mask-image: linear-gradient(90deg, #000 var(--hole-l, -100px), transparent calc(var(--hole-l, -100px) + 2px), transparent calc(var(--hole-r, -99px) - 2px), #000 var(--hole-r, -99px));
+  mask-image: linear-gradient(90deg, #000 var(--hole-l, -100px), transparent calc(var(--hole-l, -100px) + 2px), transparent calc(var(--hole-r, -99px) - 2px), #000 var(--hole-r, -99px));
+}
+/* feather the lens copy at the rim so refracted glyph fragments dissolve */
+.lq-lens {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%), linear-gradient(180deg, transparent 0, #000 9%, #000 91%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%), linear-gradient(180deg, transparent 0, #000 9%, #000 91%, transparent 100%);
+  mask-composite: intersect;
+}
+
+/* ---- Segmented control (search filter, reading settings) ----------------- */
+.lg-seg {
+  position: relative;
+  display: inline-grid;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(20, 34, 54, 0.06);
+  box-shadow: inset 0 1px 2px rgba(20, 34, 54, 0.08), inset 0 0 0 1px rgba(20, 34, 54, 0.04);
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.lg-seg-items {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+}
+.lg-seg-items button,
+.lq-lens-inner.seg button {
+  min-width: 64px;
+  height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13.5px;
+  font-weight: 750;
+  white-space: nowrap;
+  transition: color 0.2s;
+}
+.lg-seg-items button[aria-checked="true"] {
+  color: var(--ink);
+}
+.lg-seg.is-dragging .lg-seg-items button[aria-checked="true"]:not(.is-hover) {
+  color: var(--muted);
+}
+.lg-seg-items button.is-hover {
+  color: var(--ink);
+}
+.lg-seg-thumb {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 4px;
+  height: calc(100% - 8px);
+  border-radius: 999px;
+  pointer-events: none;
+}
+.lg-seg-items button:focus-visible {
+  outline: 2px solid rgba(63, 127, 179, 0.55);
+  outline-offset: 1px;
+}
+
+/* ---- Search sheet --------------------------------------------------------- */
+.searchbox {
+  --lg-blur: 26px;
+  --lg-sat: 170%;
+  --lg-fill-top: rgba(255, 255, 255, 0.84);
+  --lg-fill-mid: rgba(250, 252, 254, 0.74);
+  --lg-fill-bot: rgba(255, 255, 255, 0.8);
+  --lg-drop: 0 40px 90px -30px rgba(22, 44, 70, 0.42), 0 6px 16px rgba(22, 44, 70, 0.08);
+}
+.searchbox > * {
+  position: relative;
+  z-index: 2;
+}
+.search-head .iconbtn,
+.otp-head .iconbtn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(20, 34, 54, 0.06);
+  color: var(--ink-3);
+  box-shadow: none;
+  transition: background 0.2s, transform 0.4s var(--spring);
+}
+.search-head .iconbtn:hover,
+.otp-head .iconbtn:hover {
+  background: rgba(20, 34, 54, 0.1);
+}
+.search-head .iconbtn svg,
+.otp-head .iconbtn svg {
+  width: 18px;
+  height: 18px;
+}
+.otp-card {
+  --lg-blur: 26px;
+  --lg-fill-top: rgba(255, 255, 255, 0.88);
+  --lg-fill-mid: rgba(250, 252, 254, 0.78);
+  --lg-fill-bot: rgba(255, 255, 255, 0.84);
+  --lg-drop: 0 40px 90px -30px rgba(22, 44, 70, 0.42), 0 6px 16px rgba(22, 44, 70, 0.08);
+}
+.otp-card > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* ---- Toast ---------------------------------------------------------------- */
+.toast {
+  --lg-blur: 14px;
+  --lg-fill-top: rgba(255, 255, 255, 0.78);
+  --lg-fill-mid: rgba(255, 255, 255, 0.6);
+  --lg-fill-bot: rgba(255, 255, 255, 0.72);
+}
+
+/* ---- Route transitions (View Transitions API) ----------------------------- */
+html.sw-public-spa-v2436 {
+  view-transition-name: none;
+}
+html.sw-public-spa-v2436 #app {
+  view-transition-name: sw-public-content;
+}
+html.sw-public-spa-v2436 .pager {
+  view-transition-name: sw-public-dock;
+}
+html.sw-public-spa-v2436 .brand-top {
+  view-transition-name: sw-public-brand;
+}
+html.sw-public-spa-v2436 .top-actions {
+  view-transition-name: sw-public-actions;
+}
+::view-transition-group(sw-public-content) {
+  animation-duration: 0.34s;
+  animation-timing-function: var(--sw-route-ease);
+}
+::view-transition-old(sw-public-content) {
+  animation: sw-route-old 0.2s ease both;
+}
+::view-transition-new(sw-public-content) {
+  animation: sw-route-new 0.42s var(--sw-route-ease) both;
+}
+::view-transition-group(sw-public-dock),
+::view-transition-group(sw-public-brand),
+::view-transition-group(sw-public-actions) {
+  animation: none !important;
+}
+::view-transition-old(sw-public-dock),
+::view-transition-new(sw-public-dock),
+::view-transition-old(sw-public-brand),
+::view-transition-new(sw-public-brand),
+::view-transition-old(sw-public-actions),
+::view-transition-new(sw-public-actions) {
+  animation: none !important;
+  mix-blend-mode: normal;
+}
+/* shared-element morph: card cover/title → article cover/title */
+::view-transition-group(sw-hero-cover),
+::view-transition-group(sw-hero-title) {
+  animation-duration: 0.56s;
+  animation-timing-function: cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+::view-transition-old(sw-hero-cover),
+::view-transition-new(sw-hero-cover) {
+  height: 100%;
+  object-fit: cover;
+  overflow: hidden;
+}
+::view-transition-old(sw-hero-title) {
+  animation: sw-fade-out 0.25s ease both;
+}
+::view-transition-new(sw-hero-title) {
+  animation: sw-fade-in 0.35s 0.1s ease both;
+}
+@keyframes sw-fade-out {
+  to { opacity: 0; }
+}
+/* opacity + transform only: blurring a full-height page snapshot is costly on phones */
+@keyframes sw-route-old {
+  to {
+    opacity: 0;
+    transform: translate3d(var(--sw-route-old-x, -10px), 0, 0) scale(0.992);
   }
-  .pager-thumb{
-    -webkit-backdrop-filter:blur(.5px) saturate(138%)!important;
-    backdrop-filter:blur(.5px) saturate(138%)!important;
+}
+@keyframes sw-route-new {
+  from {
+    opacity: 0;
+    transform: translate3d(var(--sw-route-new-x, 14px), 0, 0) scale(0.992);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+html.sw-route-fallback-in #app {
+  animation: sw-route-fallback-in 0.32s var(--sw-route-ease) both;
+}
+@keyframes sw-route-fallback-in {
+  from {
+    opacity: 0.2;
+    transform: translate3d(var(--sw-route-new-x, 10px), 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
-/* v24.34 retired the old stand-alone QR share. Soft routing must not bring
-   that legacy QR panel back into the in-memory Share view. */
-html.sw-share-no-legacy-qr .share-card .share-grid{grid-template-columns:minmax(0,1fr)!important}
+/* iOS: shallower blur on the large fixed dock keeps 120Hz scrolling smooth. */
+@supports (-webkit-touch-callout: none) {
+  .pager {
+    --lg-blur: 5px;
+  }
+}
+
+/* v24.34 retired the stand-alone QR share; soft routing must not revive it. */
+html.sw-share-no-legacy-qr .share-card .share-grid {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
 html.sw-share-no-legacy-qr .share-card .qr-box,
 html.sw-share-no-legacy-qr #qrcode,
-html.sw-share-no-legacy-qr #refreshQr{display:none!important}
-
-@media (prefers-reduced-motion:reduce){
-  ::view-transition-group(sw-public-content),::view-transition-old(sw-public-content),::view-transition-new(sw-public-content){animation:none!important}
-  html.sw-route-fallback-in #app{animation:none!important}
-  .pager,.pager-thumb,.nav-item,.nav-item svg{transition:none!important}
+html.sw-share-no-legacy-qr #refreshQr {
+  display: none !important;
 }
 
-/* ============================================================
-   v24.36.1 · SEARCH FOCUS HOTFIX
-   Remove the blue Safari/browser focus ring from the Public search field.
-   Keep a restrained neutral glass focus cue on the container only.
-   ============================================================ */
-.search-input:focus-within{
-  border-color:rgba(255,255,255,.92)!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.96),0 8px 26px rgba(75,122,158,.08)!important;
-  outline:none!important;
+/* Browsers without backdrop-filter: make glass solid enough to stay legible. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .brand-top,
+  .top-actions .iconbtn,
+  .pager,
+  .btn-glass,
+  .article-actions .softbtn,
+  .sw-reader-panel,
+  .sw-rail button,
+  .sw-toc,
+  .sw-sheet,
+  .toast,
+  .lg {
+    background: rgba(255, 255, 255, 0.92);
+  }
+  .searchbox,
+  .otp-card {
+    background: #fff;
+  }
 }
-.search-input input,
-.search-input input:focus,
-.search-input input:focus-visible,
-#searchInput,
-#searchInput:focus,
-#searchInput:focus-visible{
-  outline:none!important;
-  outline-offset:0!important;
-  box-shadow:none!important;
-  border-color:transparent!important;
-  -webkit-appearance:none;
-  appearance:none;
-  -webkit-tap-highlight-color:transparent;
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+  html.sw-route-fallback-in #app {
+    animation: none !important;
+  }
+  .pager,
+  .pager-thumb,
+  .lg-seg-thumb,
+  .lq-body,
+  .nav-item,
+  .nav-item svg,
+  .nav-item span {
+    transition: none !important;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .brand-top,
+  .top-actions .iconbtn,
+  .pager,
+  .searchbox,
+  .otp-card,
+  .toast,
+  .btn-glass,
+  .article-actions .softbtn,
+  .sw-reader-panel,
+  .sw-rail button,
+  .sw-toc,
+  .sw-sheet,
+  .lg {
+    background: rgba(255, 255, 255, 0.96) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
 }

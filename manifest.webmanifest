@@ -1,20 +1,31 @@
 {
   "name": "SIGN WELL · 欣緯生醫",
   "short_name": "SIGN WELL",
+  "description": "醫學白話文、臨床推理，以及值得留下的知識。",
+  "lang": "zh-Hant",
+  "dir": "ltr",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#f5f9fc",
-  "theme_color": "#f7fbfd",
+  "background_color": "#f7fafc",
+  "theme_color": "#f8fbfd",
+  "categories": [
+    "education",
+    "medical",
+    "health"
+  ],
   "icons": [
     {
       "src": "assets/app-icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "assets/app-icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
